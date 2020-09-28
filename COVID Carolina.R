@@ -164,7 +164,7 @@ names(regioes_casos)[2] <- "Nº_casos"
 
 ggplot(regioes_casos, aes(x=Regiões, y=Nº_casos)) + 
   geom_col(fill="plum3", width = 0.5) +
-  scale_x_discrete(labels= c("A?ores", "Alentejo", "Algarve", "Centro", "Lisboa e Vale do Tejo", "Norte", "Madeira")) +
+  scale_x_discrete(labels= c("Açores", "Alentejo", "Algarve", "Centro", "Lisboa e Vale do Tejo", "Norte", "Madeira")) +
   theme_classic() +
   labs(y="Nº de casos", title = "Nº de casos de COVID-19 por Regiões", x="") +
   theme(plot.title = element_text(size = 20, hjust = 0.5)) +
@@ -178,7 +178,7 @@ mapa_portugal <- geojson_read("https://raw.githubusercontent.com/dssg-pt/covid19
 
 
 regioes_casos_ordem <- regioes_casos[c(4,5,6,2,7,1,3),] # colocar as regioes pela ordem do mapa
-regioes_casos_ordem[,1] <- c("Alentejo", "Algarve", "A?ores", "Centro", "Madeira", "Norte", "Lisboa e Vale do Tejo" )
+regioes_casos_ordem[,1] <- c("Alentejo", "Algarve", "Açores", "Centro", "Madeira", "Norte", "Lisboa e Vale do Tejo" )
 
 pal_casos <- colorBin("Blues",  bins = c(0,300, 2000, 6000, 20000, 30000, Inf)) ## tonalidade das cores consoante os casos
 
@@ -196,9 +196,9 @@ leaflet(mapa_portugal) %>%
   addLegend("bottomleft", pal = pal_casos, values = regioes_casos_ordem$Nº_casos, opacity = 0.5, title = "Nº de casos por região") %>% 
   addTiles(group ="Original") %>%
   addProviderTiles(providers$CartoDB.Positron, group = "Positron") %>%
-  addProviderTiles(providers$Esri.WorldImagery, group = "Sat?lite") %>%
+  addProviderTiles(providers$Esri.WorldImagery, group = "Satélite") %>%
   addProviderTiles(providers$CartoDB.DarkMatter, group = "CartoDB.DarkMatter") %>%
-  addLayersControl(baseGroups = c("Original", "Positron", "Sat?lite", "Dark"), options = layersControlOptions(collapsed = FALSE))
+  addLayersControl(baseGroups = c("Original", "Positron", "Satélite", "Dark"), options = layersControlOptions(collapsed = FALSE))
 
 
 
@@ -249,12 +249,12 @@ pop_madeira <- 254254
 
 pop_regioes <- as.data.frame(c(pop_norte, pop_centro, pop_lvt, pop_alentejo, pop_algarve, pop_acores,pop_madeira))
 pop_regioes_rep <- as.data.frame(t(pop_regioes[rep(seq_len(ncol(pop_regioes)), each=nrow(covid.pt))]))
-names(pop_regioes_rep) <- c("Norte", "Centro", "LVT", "Alentejo", "Algarve", "A?ores", "Madeira")
+names(pop_regioes_rep) <- c("Norte", "Centro", "LVT", "Alentejo", "Algarve", "Açores", "Madeira")
 
 incidencia_regioes_sd <- as.data.frame((covid.pt[,confirmados_arsnorte:confirmados_madeira]- lag(covid.pt[, confirmados_arsnorte:confirmados_madeira]))) / (pop_regioes_rep - as.data.frame(covid.pt[, confirmados_arsnorte:confirmados_madeira] - covid.pt[, obitos_arsnorte:obitos_madeira]))
 
 incidencia_regioes <- cbind(covid.pt$data, incidencia_regioes_sd)
-names(incidencia_regioes) <- c("Data", "Norte", "Centro", "LVT", "Alentejo", "Algarve", "A?ores", "Madeira")
+names(incidencia_regioes) <- c("Data", "Norte", "Centro", "LVT", "Alentejo", "Algarve", "Açores", "Madeira")
 
 incidencia_regioes_melted <- reshape2::melt(incidencia_regioes, id.vars="Data")
 names(incidencia_regioes_melted)[-1] <- c("ARS", "Incidência")
@@ -373,7 +373,7 @@ names(regioes_mortes)[2] <- "Nº_mortes"
 
 ggplot(regioes_mortes, aes(x=Regiões, y=Nº_mortes)) + 
   geom_col(fill="olivedrab4", width = 0.5) +
-  scale_x_discrete(labels= c("A?ores", "Alentejo", "Algarve", "Centro", "Lisboa e Vale do Tejo", "Norte", "Madeira")) +
+  scale_x_discrete(labels= c("Açores", "Alentejo", "Algarve", "Centro", "Lisboa e Vale do Tejo", "Norte", "Madeira")) +
   theme_classic() +
   labs(y="Nº de mortes", title = "Nº de mortes de COVID-19 por Regiões", x="") +
   theme(plot.title = element_text(size = 20, hjust = 0.5)) +
@@ -384,7 +384,7 @@ ggplot(regioes_mortes, aes(x=Regiões, y=Nº_mortes)) +
 ## Nº de mortes por regiao (mapa)
 
 regioes_mortes_ordem <- regioes_mortes[c(4,5,6,2,7,1,3),] # colocar as regioes pela ordem do mapa
-regioes_mortes_ordem[,1] <- c("Alentejo", "Algarve", "A?ores", "Centro", "Madeira", "Norte", "Lisboa e Vale do Tejo" )
+regioes_mortes_ordem[,1] <- c("Alentejo", "Algarve", "Açores", "Centro", "Madeira", "Norte", "Lisboa e Vale do Tejo" )
 
 pal_mortes <- colorBin("YlOrBr", domain = regioes_mortes_ordem$Nº_mortes, pretty = TRUE) 
 
@@ -402,9 +402,9 @@ leaflet(mapa_portugal) %>%
   addLegend("bottomleft", pal = pal_mortes, values = regioes_mortes_ordem$Nº_mortes, opacity = 0.5, title = "Nº de mortes por região") %>% 
   addTiles(group ="Original") %>%
   addProviderTiles(providers$CartoDB.Positron, group = "Positron") %>%
-  addProviderTiles(providers$Esri.WorldImagery, group = "Sat?lite") %>%
+  addProviderTiles(providers$Esri.WorldImagery, group = "Satélite") %>%
   addProviderTiles(providers$CartoDB.DarkMatter, group = "CartoDB.DarkMatter") %>%
-  addLayersControl(baseGroups = c("Original", "Positron", "Sat?lite", "Dark"), options = layersControlOptions(collapsed = FALSE))
+  addLayersControl(baseGroups = c("Original", "Positron", "Satélite", "Dark"), options = layersControlOptions(collapsed = FALSE))
 
 
 
@@ -452,7 +452,7 @@ names(regioes_tm)[2] <- "Taxa_Mortalidade"
 
 ggplot(regioes_tm, aes(x=Região, y=Taxa_Mortalidade*100)) + 
   geom_col(fill="grey73", width = 0.5) +
-  scale_x_discrete(labels= c("A?ores", "Alentejo", "Algarve", "Centro", "Lisboa e Vale do Tejo", "Madeira", "Norte")) +
+  scale_x_discrete(labels= c("Açores", "Alentejo", "Algarve", "Centro", "Lisboa e Vale do Tejo", "Madeira", "Norte")) +
   theme_classic() +
   labs(y="Taxa de mortalidade (%)", title = "Taxa de mortalidade da COVID-19 por Regiões", x="") +
   theme(plot.title = element_text(size = 20, hjust = 0.5)) +
@@ -463,7 +463,7 @@ ggplot(regioes_tm, aes(x=Região, y=Taxa_Mortalidade*100)) +
 ## Taxa de mortalidade por regiao (mapa)
 
 regioes_tm_ordem <- regioes_tm[c(2,3,1,4,7,6,5),] # colocar as regioes pela ordem do mapa
-regioes_tm_ordem[,1] <- c("Alentejo", "Algarve", "A?ores", "Centro", "Madeira", "Norte", "Lisboa e Vale do Tejo" )
+regioes_tm_ordem[,1] <- c("Alentejo", "Algarve", "Açores", "Centro", "Madeira", "Norte", "Lisboa e Vale do Tejo" )
 
 pal_tm <- colorBin("BuPu", domain = regioes_tm_ordem$Taxa_Mortalidade*100, bins = c(0, 0.003, 0.005, 0.007, 0.01, 0.02, Inf)) 
 
@@ -481,9 +481,9 @@ leaflet(mapa_portugal) %>%
   addLegend("bottomleft", pal = pal_tm, values = regioes_tm_ordem$Taxa_Mortalidade, opacity = 0.5, title = "Taxa de mortalidade por região (%)") %>% 
   addTiles(group ="Original") %>%
   addProviderTiles(providers$CartoDB.Positron, group = "Positron") %>%
-  addProviderTiles(providers$Esri.WorldImagery, group = "Sat?lite") %>%
+  addProviderTiles(providers$Esri.WorldImagery, group = "Satélite") %>%
   addProviderTiles(providers$CartoDB.DarkMatter, group = "CartoDB.DarkMatter") %>%
-  addLayersControl(baseGroups = c("Original", "Positron", "Sat?lite", "Dark"), options = layersControlOptions(collapsed = FALSE))
+  addLayersControl(baseGroups = c("Original", "Positron", "Satélite", "Dark"), options = layersControlOptions(collapsed = FALSE))
 
 
 
@@ -674,7 +674,7 @@ names(regioes_letalidade)[2] <- "Taxa_Letalidade"
 
 ggplot(regioes_letalidade, aes(x=Regiões, y=Taxa_Letalidade*100)) + 
   geom_col(fill="powderblue", width = 0.5) +
-  scale_x_discrete(labels= c("A?ores", "Alentejo", "Algarve", "Centro", "Lisboa e Vale do Tejo", "Madeira", "Norte")) +
+  scale_x_discrete(labels= c("Açores", "Alentejo", "Algarve", "Centro", "Lisboa e Vale do Tejo", "Madeira", "Norte")) +
   theme_classic() +
   labs(y="Taxa de letalidade (%)", title = "Taxa de letalidade da COVID-19 por Regiões", x="") +
   theme(plot.title = element_text(size = 20, hjust = 0.5)) +
@@ -685,7 +685,7 @@ ggplot(regioes_letalidade, aes(x=Regiões, y=Taxa_Letalidade*100)) +
 ## Taxa de letalidade por regioes (mapa)
 
 regioes_letalidade_ordem <- regioes_letalidade[c(2,3,1,4,6,7,5),]
-regioes_letalidade_ordem[,1] <- c("Alentejo", "Algarve", "A?ores", "Centro", "Madeira", "Norte", "Lisboa e Vale do Tejo" )
+regioes_letalidade_ordem[,1] <- c("Alentejo", "Algarve", "Açores", "Centro", "Madeira", "Norte", "Lisboa e Vale do Tejo" )
 
 pal_letalidade <- colorBin("Oranges", domain = regioes_letalidade_ordem$Taxa_Letalidade*100, bins = c(0, 1, 2, 3, 4, 5, 6, Inf)) 
 
@@ -703,15 +703,15 @@ leaflet(mapa_portugal) %>%
   addLegend("bottomleft", pal = pal_letalidade, values = regioes_letalidade_ordem$Taxa_Letalidade, opacity = 0.5, title = "Taxa de letalidade por região (%)") %>% 
   addTiles(group ="Original") %>%
   addProviderTiles(providers$CartoDB.Positron, group = "Positron") %>%
-  addProviderTiles(providers$Esri.WorldImagery, group = "Sat?lite") %>%
+  addProviderTiles(providers$Esri.WorldImagery, group = "Satélite") %>%
   addProviderTiles(providers$CartoDB.DarkMatter, group = "CartoDB.DarkMatter") %>%
-  addLayersControl(baseGroups = c("Original", "Positron", "Sat?lite", "Dark"), options = layersControlOptions(collapsed = FALSE))
+  addLayersControl(baseGroups = c("Original", "Positron", "Satélite", "Dark"), options = layersControlOptions(collapsed = FALSE))
 
 
 ## Evolucao temporal da taxa de Letalidade por regiao
 
 letalidade_regioes_tempo <- cbind(covid.pt$data, as.data.frame(covid.pt[,49:55]/covid.pt[,4:10]))
-names(letalidade_regioes_tempo) <- c("Data", "Norte", "Centro", "Lisboa e Vale do Tejo", "Alentejo", "Alrgarve", "A?ores", "Madeira")
+names(letalidade_regioes_tempo) <- c("Data", "Norte", "Centro", "Lisboa e Vale do Tejo", "Alentejo", "Alrgarve", "Açores", "Madeira")
 
 letalidade_regioes_tempo_melt <- reshape2::melt(letalidade_regioes_tempo, id.vars="Data")
 
