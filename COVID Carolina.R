@@ -41,20 +41,20 @@ covid.pt$data<-as.Date(as.character(covid.pt$data),format = "%d-%m-%Y")
 ## Calcular as frequencias relativas dos sinais clinicos (tabela e grafico de barras)
 
 sintomas <- as.data.frame(t(covid.pt[173, 41:46]))
-                          
+
 sintomas <- sintomas %>%
   rownames_to_column(var="Sintomas")
-  names(sintomas)[2] <- "Frequ?ncia"
+names(sintomas)[2] <- "Frequência"
 
-ggplot(sintomas, aes(x=Sintomas, y=Frequ?ncia*100)) + 
+ggplot(sintomas, aes(x=Sintomas, y=Frequência*100)) + 
   geom_col(fill="darksalmon", width = 0.6) +
   scale_x_discrete(labels= c("Cefaleia", "Dificuldade\nrespirat?ria", "Dores\nmusculares", "Febre", "Fraqueza\ngeneralizada", "Tosse")) +
   theme_classic() +
-  labs(y="Frequ?ncia (%)", title = "Frequ?ncia de sintomas da COVID-19",x="") +
+  labs(y="Frequência (%)", title = "Frequência de sintomas da COVID-19",x="") +
   theme(plot.title = element_text(size = 20, hjust = 0.5)) +
   theme(axis.title.x = element_text(size = 15), axis.title.y = element_text(size = 15)) +
-  geom_text(aes(label = scales::percent(Frequ?ncia, digits=4)), vjust=-0.5)
-      
+  geom_text(aes(label = scales::percent(Frequência, digits=4)), vjust=-0.5)
+
 
 ## Avaliar se as frequencias relativas/incidencia dos sinais clinicos se foram alterando ao longo do tempo e fazer um grafico de linhas
 
@@ -69,14 +69,14 @@ sintomas_tempo_3[3,4] <- 0.11
 
 sintomas_tempo_melt <- melt(sintomas_tempo_3, id.vars="Data")
 names(sintomas_tempo_melt)[-1] <- c("Sintomas", "Valores")
- 
+
 ggplot(sintomas_tempo_melt, aes(x = Data, y = Valores*100, color = Sintomas)) +
   geom_line() +
   facet_grid(sintomas_tempo_melt$Sintomas) + ## para separar em varios graficos
   guides(color = FALSE) +
-  xlab("M?s") +
-  ylab("Frequ?ncia (%)")+
-  labs(title = "Frequ?ncia de Sintomas da COVID-19 ao longo do tempo") +
+  xlab("Mês") +
+  ylab("Frequência (%)")+
+  labs(title = "Frequência de Sintomas da COVID-19 ao longo do tempo") +
   theme(plot.title = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 20, color = "black", hjust = 0.5)) +
   theme(axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 20), size = 15)) +
   theme(axis.title.x = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 15))
@@ -87,7 +87,7 @@ ggplot(sintomas_tempo_melt, aes(x = Data, y = Valores*100, color = Sintomas)) +
 
 
 # NUMERO DE CASOS
-## N? de casos por grupo etario por genero e total (tabela e grafico de barras)
+## Nº de casos por grupo etario por genero e total (tabela e grafico de barras)
 
 femininos <- as.data.frame(covid.pt %>% 
                              dplyr::select(starts_with("confirmados_") & (ends_with("9_f")| ends_with("plus_f"))))
@@ -121,21 +121,21 @@ casos_fem_masc <- merge(casos_femininos_invertido, casos_masculinos_invertido, b
 casos_fem_masc_tot <- merge(casos_fem_masc, casos_total_invertido, by = "Idade")
 
 casos_grupo_etario_genero_melted <- reshape2::melt(casos_fem_masc_tot, id.vars = "Idade")
-names(casos_grupo_etario_genero_melted)[2:3] <- c("G?nero","N?_casos")
+names(casos_grupo_etario_genero_melted)[2:3] <- c("Género","Nº_casos")
 
-ggplot(casos_grupo_etario_genero_melted, aes(x=Idade, y=N?_casos, fill=G?nero)) + 
+ggplot(casos_grupo_etario_genero_melted, aes(x=Idade, y=Nº_casos, fill=Género)) + 
   geom_col(width = 0.9, position = "dodge") +
   theme_classic() +
-  labs(y="N? de casos", title = "N? de casos da COVID-19 por grupo et?rio e por g?nero", x="") +
+  labs(y="Nº de casos", title = "Nº de casos da COVID-19 por grupo etário e por Género", x="") +
   theme(plot.title = element_text(size = 20, hjust = 0.5)) +
   theme(axis.title.x = element_text(size = 1, margin = margin(t=10, r=1, b= 2, l=1)), axis.title.y = element_text(size = 15)) +
-  geom_text(aes(label=N?_casos),position = position_dodge(width = 0.8), vjust=-0.5, size=3.2) +
+  geom_text(aes(label=Nº_casos),position = position_dodge(width = 0.8), vjust=-0.5, size=3.2) +
   scale_fill_manual(values = c("pink2", "steelblue3", "grey71")) +
   scale_y_continuous(expand = c(0,0)) +
-  coord_cartesian(ylim = c(0, max(casos_grupo_etario_genero_melted$N?_casos)+500))
+  coord_cartesian(ylim = c(0, max(casos_grupo_etario_genero_melted$Nº_casos)+500))
 
 
-## N? de casos por grupo etario ao longo do tempo
+## Nº de casos por grupo etario ao longo do tempo
 
 femininos_casos_tempo <- femininos-lag(femininos)
 masculinos_casos_tempo <- masculinos-lag(masculinos)
@@ -144,35 +144,35 @@ total_casos_tempo[7,2:10] <- femininos[7,] + masculinos[7,]
 names(total_casos_tempo) <- c("Data", "0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80+")
 
 total_casos_tempo_melted <- reshape2::melt(total_casos_tempo, id.vars="Data")
-names(total_casos_tempo_melted)[2:3] <- c("Idade", "N?_casos")
+names(total_casos_tempo_melted)[2:3] <- c("Idade", "Nº_casos")
 
-### falta por os meses no eixo do x
-ggplot(total_casos_tempo_melted, aes(x=Data, y=N?_casos, color=Idade)) +
+ggplot(total_casos_tempo_melted, aes(x=Data, y=Nº_casos, color=Idade)) +
   geom_line() +
-  labs(title="N? de casos de COVID-19 por grupo et?rio ao longo do tempo")+
+  labs(title="Nº de casos de COVID-19 por grupo etário ao longo do tempo")+
   facet_grid(total_casos_tempo_melted$Idade) +
-  guides(color=FALSE) ##tirar a legenda
+  guides(color=FALSE) + ##tirar a legenda 
+  scale_x_date(date_breaks = "months", date_labels = "%b")
 
 
-## N? de casos por regiao (tabela e grafico de barras)
+## Nº de casos por regiao (tabela e grafico de barras)
 
 regioes_casos <- as.data.frame(t(as.data.frame(lapply(covid.pt[,4:10], last))))
 
 regioes_casos <- regioes_casos %>% 
-  rownames_to_column(var="Regi?es")
-names(regioes_casos)[2] <- "N?_casos"
+  rownames_to_column(var="Regiões")
+names(regioes_casos)[2] <- "Nº_casos"
 
-ggplot(regioes_casos, aes(x=Regi?es, y=N?_casos)) + 
+ggplot(regioes_casos, aes(x=Regiões, y=Nº_casos)) + 
   geom_col(fill="plum3", width = 0.5) +
   scale_x_discrete(labels= c("A?ores", "Alentejo", "Algarve", "Centro", "Lisboa e Vale do Tejo", "Norte", "Madeira")) +
   theme_classic() +
-  labs(y="N? de casos", title = "N? de casos de COVID-19 por regi?es", x="") +
+  labs(y="Nº de casos", title = "Nº de casos de COVID-19 por Regiões", x="") +
   theme(plot.title = element_text(size = 20, hjust = 0.5)) +
   theme(axis.title.x = element_text(size = 15), axis.title.y = element_text(size = 15)) +
-  geom_text(aes(label=N?_casos), vjust=-0.5)
+  geom_text(aes(label=Nº_casos), vjust=-0.5)
 
 
-## N? de casos por regiao (mapa) 
+## Nº de casos por regiao (mapa) 
 
 mapa_portugal <- geojson_read("https://raw.githubusercontent.com/dssg-pt/covid19pt-data/master/extra/mapas/portugal.geojson", what = "sp")
 
@@ -190,10 +190,10 @@ labels_casos <- paste( #tornar o mapa interativo
 
 leaflet(mapa_portugal) %>%
   addPolygons(stroke = TRUE, smoothFactor = 0.3, fillOpacity = 1, color = "black", weight = 1,
-              fillColor = ~pal_casos(regioes_casos_ordem$N?_casos),
+              fillColor = ~pal_casos(regioes_casos_ordem$Nº_casos),
               label = labels_casos, 
               labelOptions = labelOptions(style = list("font-weight" = "normal", padding = "3px 8px"), textsize = "13px", direction = "auto")) %>% 
-  addLegend("bottomleft", pal = pal_casos, values = regioes_casos_ordem$N?_casos, opacity = 0.5, title = "N? de casos por regi?o") %>% 
+  addLegend("bottomleft", pal = pal_casos, values = regioes_casos_ordem$Nº_casos, opacity = 0.5, title = "Nº de casos por região") %>% 
   addTiles(group ="Original") %>%
   addProviderTiles(providers$CartoDB.Positron, group = "Positron") %>%
   addProviderTiles(providers$Esri.WorldImagery, group = "Sat?lite") %>%
@@ -222,16 +222,16 @@ incidencia_nt <- cbind(covid.pt$data, incidencia_total, incidencia_homens, incid
 names(incidencia_nt) <- c("Data", "Total", "Homens", "Mulheres")
 
 incidencia_melt <- reshape2::melt(incidencia_nt, id.vars="Data")
-names(incidencia_melt)[-1] <- c("G?nero", "Valores")
+names(incidencia_melt)[-1] <- c("Género", "Valores")
 
 ###falta por os meses no eixo do x
-ggplot(incidencia_melt, aes(x=Data, y=Valores*100, color=G?nero)) +
+ggplot(incidencia_melt, aes(x=Data, y=Valores*100, color=Género)) +
   geom_line() +
-  labs(title="Incid?ncia Di?ria por G?nero", color="") +
-  facet_grid(incidencia_melt$G?nero)+
+  labs(title="Incidência Di?ria por Género", color="") +
+  facet_grid(incidencia_melt$Género)+
   guides(color = FALSE) +
   xlab("Data") +
-  ylab("Incid?ncia (%)") +
+  ylab("Incidência (%)") +
   theme(plot.title = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 20, color = "black", hjust = 0.5)) +
   theme(axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 20), size = 15)) +
   theme(axis.title.x = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 15))
@@ -257,27 +257,25 @@ incidencia_regioes <- cbind(covid.pt$data, incidencia_regioes_sd)
 names(incidencia_regioes) <- c("Data", "Norte", "Centro", "LVT", "Alentejo", "Algarve", "A?ores", "Madeira")
 
 incidencia_regioes_melted <- reshape2::melt(incidencia_regioes, id.vars="Data")
-names(incidencia_regioes_melted)[-1] <- c("ARS", "Incid?ncia")
+names(incidencia_regioes_melted)[-1] <- c("ARS", "Incidência")
 
-### falta por os meses no eixo do x
-ggplot(incidencia_regioes_melted, aes(x= Data, y = Incid?ncia*100, color = ARS)) +
+ggplot(incidencia_regioes_melted, aes(x= Data, y = Incidência*100, color = ARS)) +
   geom_line() +
-  xlab("M?s") +
-  ylab("Incid?ncia (%)") +
-  labs(title="Incid?ncia da COVID-19 por regi?o ao longo do tempo") +
+  xlab("Mês") +
+  ylab("Incidência (%)") +
+  labs(title="Incidência da COVID-19 por região ao longo do tempo") +
   facet_grid(incidencia_regioes_melted$ARS) +
   guides(color = FALSE) +
   theme(plot.title = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 20, color = "black", hjust = 0.5)) +
   theme(axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 20), size = 15)) +
   theme(axis.title.x = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 15)) +
-  scale_x_date(date_breaks = "1 month")
-# scale_x_date(date_labels = "%b")
+  scale_x_date(date_breaks = "months", date_labels = "%b")
 
 
 
 
 # CASOS DE MORTE
-## N? de mortes por genero e total (Tabela e grafico de barras)
+## Nº de mortes por genero e total (Tabela e grafico de barras)
 
 mortes_total <- last(covid.pt$obitos)
 mortes_mulheres <- last(covid.pt$obitos_f)
@@ -287,20 +285,20 @@ numero_mortes_nt <-cbind(mortes_total, mortes_homens, mortes_mulheres)
 
 numero_mortes <- as.data.frame(t(numero_mortes_nt))
 numero_mortes <- numero_mortes %>% 
-  rownames_to_column(var="G?nero")
-  names(numero_mortes)[2] <- "N?_mortes"
+  rownames_to_column(var="Género")
+names(numero_mortes)[2] <- "Nº_mortes"
 
-ggplot(numero_mortes, aes(x=G?nero, y=N?_mortes)) + 
+ggplot(numero_mortes, aes(x=Género, y=Nº_mortes)) + 
   geom_col(fill="steelblue4", width = 0.5) +
   scale_x_discrete(labels= c("Homens", "Mulheres", "Total")) +
   theme_classic() +
-  labs(y="N? de mortes", title = "N?mero de mortes por COVID-19", x="") +
+  labs(y="Nº de mortes", title = "Nºmero de mortes por COVID-19", x="") +
   theme(plot.title = element_text(size = 20, hjust = 0.5)) +
   theme(axis.title.x = element_text(size = 15), axis.title.y = element_text(size = 15)) +
-  geom_text(aes(label = N?_mortes), vjust=-0.5)
+  geom_text(aes(label = Nº_mortes), vjust=-0.5)
 
 
-## N? de mortes por grupo etario por genero e total (tabela e grafico de barras)
+## Nº de mortes por grupo etario por genero e total (tabela e grafico de barras)
 
 mortes_0_9_total <- last(covid.pt$obitos_0_9_f) + last(covid.pt$obitos_0_9_m)
 mortes_0_9_f <- last(covid.pt$obitos_0_9_f)
@@ -353,42 +351,42 @@ mortes_grupo_etario_fm <- merge(mortes_grupo_etario_f, mortes_grupo_etario_m, by
 mortes_grupo_etario_merged <- merge(mortes_grupo_etario_fm, mortes_grupo_etario_total, by = "Idade" )
 
 mortes_grupo_etario_melted <- reshape2::melt(mortes_grupo_etario_merged, id.vars = "Idade")
-names(mortes_grupo_etario_melted)[2:3] <- c("G?nero","Mortes")
+names(mortes_grupo_etario_melted)[2:3] <- c("Género","Mortes")
 
-ggplot(mortes_grupo_etario_melted, aes(x=Idade, y=Mortes, fill=G?nero)) + 
+ggplot(mortes_grupo_etario_melted, aes(x=Idade, y=Mortes, fill=Género)) + 
   geom_col(width = 0.9, position = "dodge") +
   theme_classic() +
-  labs(y="N? de mortes", title = "N? de mortes da COVID-19 por grupo et?rio e por g?nero", x="") +
+  labs(y="Nº de mortes", title = "Nº de mortes da COVID-19 por grupo etário e por Género", x="") +
   theme(plot.title = element_text(size = 20, hjust = 0.5)) +
   theme(axis.title.x = element_text(size = 1), axis.title.y = element_text(size = 15)) +
   geom_text(aes(label=Mortes),position = position_dodge(width = 0.9), vjust=-0.5, size=3.5) +
   scale_fill_manual(values = c("pink2", "steelblue3", "grey71"))
 
 
-## N? de mortes por regiao (tabela e grafico de barras)
+## Nº de mortes por regiao (tabela e grafico de barras)
 
 regioes_mortes <- as.data.frame(t(as.data.frame(lapply(covid.pt[,obitos_arsnorte:obitos_madeira], last))))
 
 regioes_mortes <- regioes_mortes %>% 
-  rownames_to_column(var="Regi?es")
-names(regioes_mortes)[2] <- "N?_mortes"
+  rownames_to_column(var="Regiões")
+names(regioes_mortes)[2] <- "Nº_mortes"
 
-ggplot(regioes_mortes, aes(x=Regi?es, y=N?_mortes)) + 
+ggplot(regioes_mortes, aes(x=Regiões, y=Nº_mortes)) + 
   geom_col(fill="olivedrab4", width = 0.5) +
   scale_x_discrete(labels= c("A?ores", "Alentejo", "Algarve", "Centro", "Lisboa e Vale do Tejo", "Norte", "Madeira")) +
   theme_classic() +
-  labs(y="N? de mortes", title = "N? de mortes de COVID-19 por regi?es", x="") +
+  labs(y="Nº de mortes", title = "Nº de mortes de COVID-19 por Regiões", x="") +
   theme(plot.title = element_text(size = 20, hjust = 0.5)) +
   theme(axis.title.x = element_text(size = 15), axis.title.y = element_text(size = 15)) +
-  geom_text(aes(label=N?_mortes), vjust=-0.5)
+  geom_text(aes(label=Nº_mortes), vjust=-0.5)
 
 
-## N? de mortes por regiao (mapa)
+## Nº de mortes por regiao (mapa)
 
 regioes_mortes_ordem <- regioes_mortes[c(4,5,6,2,7,1,3),] # colocar as regioes pela ordem do mapa
 regioes_mortes_ordem[,1] <- c("Alentejo", "Algarve", "A?ores", "Centro", "Madeira", "Norte", "Lisboa e Vale do Tejo" )
 
-pal_mortes <- colorBin("YlOrBr", domain = regioes_mortes_ordem$N?_mortes, pretty = TRUE) 
+pal_mortes <- colorBin("YlOrBr", domain = regioes_mortes_ordem$Nº_mortes, pretty = TRUE) 
 
 labels_mortes <- paste( 
   "<strong>", regioes_mortes_ordem[,1],"</strong><br/>", 
@@ -398,10 +396,10 @@ labels_mortes <- paste(
 
 leaflet(mapa_portugal) %>%
   addPolygons(stroke = TRUE, smoothFactor = 0.3, fillOpacity = 1, color = "black", weight = 1,
-              fillColor = ~pal_mortes(regioes_mortes_ordem$N?_mortes),
+              fillColor = ~pal_mortes(regioes_mortes_ordem$Nº_mortes),
               label = labels_mortes, 
               labelOptions = labelOptions(style = list("font-weight" = "normal", padding = "3px 8px"), textsize = "13px", direction = "auto")) %>% 
-  addLegend("bottomleft", pal = pal_mortes, values = regioes_mortes_ordem$N?_mortes, opacity = 0.5, title = "N? de mortes por regi?o") %>% 
+  addLegend("bottomleft", pal = pal_mortes, values = regioes_mortes_ordem$Nº_mortes, opacity = 0.5, title = "Nº de mortes por região") %>% 
   addTiles(group ="Original") %>%
   addProviderTiles(providers$CartoDB.Positron, group = "Positron") %>%
   addProviderTiles(providers$Esri.WorldImagery, group = "Sat?lite") %>%
@@ -422,10 +420,10 @@ tm_nt <- cbind(tm_total, tm_homens, tm_mulheres)
 
 tm <- as.data.frame(t(tm_nt))
 tm <- tm %>% 
-    rownames_to_column(var="G?nero")
-    names(tm)[2] <- "Taxa_Mortalidade"
-    
-ggplot(tm, aes(x=G?nero, y=Taxa_Mortalidade*100)) + 
+  rownames_to_column(var="Género")
+names(tm)[2] <- "Taxa_Mortalidade"
+
+ggplot(tm, aes(x=Género, y=Taxa_Mortalidade*100)) + 
   geom_col(fill="snow3", width = 0.5) +
   scale_x_discrete(labels= c("Homens", "Mulheres", "Total")) +
   theme_classic() +
@@ -449,14 +447,14 @@ regioes_tm_nt <- cbind(tm_acores, tm_alentejo, tm_algarve, tm_centro, tm_lvt, tm
 
 regioes_tm <- as.data.frame(t(regioes_tm_nt))
 regioes_tm <- regioes_tm %>% 
-  rownames_to_column(var="Regi?o")
+  rownames_to_column(var="Região")
 names(regioes_tm)[2] <- "Taxa_Mortalidade"
 
-ggplot(regioes_tm, aes(x=Regi?o, y=Taxa_Mortalidade*100)) + 
+ggplot(regioes_tm, aes(x=Região, y=Taxa_Mortalidade*100)) + 
   geom_col(fill="grey73", width = 0.5) +
   scale_x_discrete(labels= c("A?ores", "Alentejo", "Algarve", "Centro", "Lisboa e Vale do Tejo", "Madeira", "Norte")) +
   theme_classic() +
-  labs(y="Taxa de mortalidade (%)", title = "Taxa de mortalidade da COVID-19 por regi?es", x="") +
+  labs(y="Taxa de mortalidade (%)", title = "Taxa de mortalidade da COVID-19 por Regiões", x="") +
   theme(plot.title = element_text(size = 20, hjust = 0.5)) +
   theme(axis.title.x = element_text(size = 15), axis.title.y = element_text(size = 15)) +
   geom_text(aes(label = scales::percent(round(Taxa_Mortalidade, digits=5))), vjust=-0.5)
@@ -480,7 +478,7 @@ leaflet(mapa_portugal) %>%
               fillColor = ~pal_tm(regioes_tm_ordem$Taxa_Mortalidade*100),
               label = labels_tm, 
               labelOptions = labelOptions(style = list("font-weight" = "normal", padding = "3px 8px"), textsize = "13px", direction = "auto")) %>% 
-  addLegend("bottomleft", pal = pal_tm, values = regioes_tm_ordem$Taxa_Mortalidade, opacity = 0.5, title = "Taxa de mortalidade por regi?o (%)") %>% 
+  addLegend("bottomleft", pal = pal_tm, values = regioes_tm_ordem$Taxa_Mortalidade, opacity = 0.5, title = "Taxa de mortalidade por região (%)") %>% 
   addTiles(group ="Original") %>%
   addProviderTiles(providers$CartoDB.Positron, group = "Positron") %>%
   addProviderTiles(providers$Esri.WorldImagery, group = "Sat?lite") %>%
@@ -501,10 +499,10 @@ letalidade_nt <- cbind(letalidade_total, letalidade_homens, letalidade_mulheres)
 
 letalidade <- as.data.frame(t(letalidade_nt))
 letalidade <- letalidade %>% 
-  rownames_to_column(var="G?nero")
-  names(letalidade)[2] <- "Taxa_Letalidade"
-  
-ggplot(letalidade, aes(x=G?nero, y=Taxa_Letalidade*100)) + 
+  rownames_to_column(var="Género")
+names(letalidade)[2] <- "Taxa_Letalidade"
+
+ggplot(letalidade, aes(x=Género, y=Taxa_Letalidade*100)) + 
   geom_col(fill="lightblue3", width = 0.5) +
   scale_x_discrete(labels= c("Homens", "Mulheres", "Total")) +
   theme_classic() +
@@ -517,16 +515,16 @@ ggplot(letalidade, aes(x=G?nero, y=Taxa_Letalidade*100)) +
 ## Evolucao da letalidade por idade ao longo do tempo (total)
 
 femininos_let_o <- as.data.frame(covid.pt %>% 
-  dplyr::select(starts_with("obitos_") & (ends_with("9_f")| ends_with("plus_f"))))
+                                   dplyr::select(starts_with("obitos_") & (ends_with("9_f")| ends_with("plus_f"))))
 
 femininos_let_conf <- as.data.frame(covid.pt %>% 
-  dplyr::select(starts_with("confirmados_") & (ends_with("9_f")| ends_with("plus_f"))))
+                                      dplyr::select(starts_with("confirmados_") & (ends_with("9_f")| ends_with("plus_f"))))
 
 masculinos_let_o <- as.data.frame(covid.pt %>% 
-  dplyr::select((starts_with("obitos_") & (ends_with("9_m")| ends_with("plus_m")))))
+                                    dplyr::select((starts_with("obitos_") & (ends_with("9_m")| ends_with("plus_m")))))
 
 masculinos_let_conf <- as.data.frame(covid.pt %>% 
-  dplyr::select((starts_with("confirmados_") & (ends_with("9_m")| ends_with("plus_m")))))
+                                       dplyr::select((starts_with("confirmados_") & (ends_with("9_m")| ends_with("plus_m")))))
 
 total_let_o <- femininos_let_o + masculinos_let_o
 total_let_conf <- femininos_let_conf + masculinos_let_conf
@@ -537,9 +535,8 @@ letalidade_idade_tempo <- cbind(covid.pt$data, letalidade_idade_tempo_sd)
 names(letalidade_idade_tempo) <- c("Data", "0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80+")
 
 letalidade_idade_tempo_melted <- reshape2::melt(letalidade_idade_tempo, id.vars="Data")
-  names(letalidade_idade_tempo_melted)[-1] <- c("Idade", "Taxa_Letalidade")
+names(letalidade_idade_tempo_melted)[-1] <- c("Idade", "Taxa_Letalidade")
 
-### falta por os meses no eixo do x
 ggplot(letalidade_idade_tempo_melted, aes(x = Data, y = Taxa_Letalidade*100, color = Idade)) +
   geom_line() +
   xlab("Data") +
@@ -549,7 +546,8 @@ ggplot(letalidade_idade_tempo_melted, aes(x = Data, y = Taxa_Letalidade*100, col
   guides(color = FALSE) +
   theme(plot.title = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 20, color = "black", hjust = 0.5)) +
   theme(axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 20), size = 15)) +
-  theme(axis.title.x = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 15))
+  theme(axis.title.x = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 15)) +
+  scale_x_date(date_breaks = "months", date_labels = "%b")
 
 
 ## Evolucao da letalidade por idade e por sexo (x=idade)
@@ -585,21 +583,21 @@ letalidade_genero_grupo_etario_merged_mf <- merge(letalidade_genero_grupo_etario
 letalidade_genero_grupo_etario_merged <- merge(letalidade_genero_grupo_etario_merged_mf, letalidade_genero_grupo_etario_total, by="Idade")
 
 letalidade_genero_grupo_etario_melted <- reshape2::melt(letalidade_genero_grupo_etario_merged, id.vars= "Idade")
-  names(letalidade_genero_grupo_etario_melted)[-1] <- c("G?nero", "Taxa_Letalidade")
+names(letalidade_genero_grupo_etario_melted)[-1] <- c("Género", "Taxa_Letalidade")
 
-ggplot(letalidade_genero_grupo_etario_melted, aes(x = Idade, y = Taxa_Letalidade*100, color = G?nero)) +
+ggplot(letalidade_genero_grupo_etario_melted, aes(x = Idade, y = Taxa_Letalidade*100, color = Género)) +
   geom_point() +
   xlab("Idade") +
   ylab("Taxa de Letalidade (%)") +
-  labs(title="Taxa de Letalidade da COVID-19 por g?nero por idade") +
-  facet_grid(letalidade_genero_grupo_etario_melted$G?nero) + 
+  labs(title="Taxa de Letalidade da COVID-19 por Género por idade") +
+  facet_grid(letalidade_genero_grupo_etario_melted$Género) + 
   guides(color = FALSE) +
   theme(plot.title = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 20, color = "black", hjust = 0.5)) +
   theme(axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 20), size = 15)) +
   theme(axis.title.x = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 15))
 
 
-## Taxa de letalidade ajustada ? idade (tabela) (eventualmente com a evolucao temporal - ainda nao tem)
+## Taxa de letalidade ajustada à idade (tabela) (eventualmente com a evolucao temporal - ainda nao tem)
 
 percentagem_confirmados_0_9 <- (last(covid.pt$confirmados_0_9_f) + last(covid.pt$confirmados_0_9_m)) / last(covid.pt$confirmados)
 percentagem_confirmados_10_19 <- (last(covid.pt$confirmados_10_19_f) + last(covid.pt$confirmados_10_19_m)) / last(covid.pt$confirmados)
@@ -614,7 +612,7 @@ percentagem_confirmados_80_plus <- (last(covid.pt$confirmados_80_plus_f) + last(
 percentagem_confirmados <- as.data.frame(t(cbind(round(percentagem_confirmados_0_9, digits = 5), round(percentagem_confirmados_10_19, digits = 5), round(percentagem_confirmados_20_29, digits = 5), round(percentagem_confirmados_30_39, digits = 5), round(percentagem_confirmados_40_49, digits = 5), round(percentagem_confirmados_50_59, digits = 5), round(percentagem_confirmados_60_69, digits = 5), round(percentagem_confirmados_70_79, digits = 5), round(percentagem_confirmados_80_plus, digits = 5))))
 
 letalidade_aged_ajusted_tabela_1 <- cbind(round(letalidade_genero_grupo_etario_merged[,4], digits = 5), percentagem_confirmados) 
-  row.names(letalidade_aged_ajusted_tabela_1) <- c("0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80+")
+row.names(letalidade_aged_ajusted_tabela_1) <- c("0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80+")
 
 letalidade_aged_ajusted_tabela_1 <- letalidade_aged_ajusted_tabela_1 %>% 
   rownames_to_column(var="Idades")
@@ -623,7 +621,7 @@ colnames(letalidade_aged_ajusted_tabela_1)[2:3] <- c("Taxa_Letalidade", "Percent
 cross_products_aged_ajusted <- round(letalidade_aged_ajusted_tabela_1[,2]* letalidade_aged_ajusted_tabela_1[,3], digits=8)
 
 letalidade_aged_ajusted_tabela_2 <- cbind(letalidade_aged_ajusted_tabela_1, cross_products_aged_ajusted)
-  colnames(letalidade_aged_ajusted_tabela_2)[4] <- "Cross_products"
+colnames(letalidade_aged_ajusted_tabela_2)[4] <- "Cross_products"
 
 total <- c("Total", round(letalidade[1,1], digits = 8) , round(sum(letalidade_aged_ajusted_tabela_2[,3]), digits = 1), sum(letalidade_aged_ajusted_tabela_2[,4]))
 
@@ -635,24 +633,24 @@ letalidade_aged_ajusted <- rbind(letalidade_aged_ajusted_tabela_2, total)
 percentagem_confirmados_fem <- last(covid.pt$confirmados_f) / last(covid.pt$confirmados)
 percentagem_confirmados_masc <- last(covid.pt$confirmados_m) / last(covid.pt$confirmados)
 percentagem_confirmados_genero <- as.data.frame(t(cbind(round(percentagem_confirmados_fem, digits = 5), round(percentagem_confirmados_masc, digits = 5))))
-  rownames(percentagem_confirmados_genero)[1:2] <- c("Feminino", "Masculino")
-  colnames(percentagem_confirmados_genero) [1] <- "Percentagem_confirmados"
-  
+rownames(percentagem_confirmados_genero)[1:2] <- c("Feminino", "Masculino")
+colnames(percentagem_confirmados_genero) [1] <- "Percentagem_confirmados"
+
 letalidade_fem <- last(covid.pt$obitos_f) / last(covid.pt$confirmados_f)
 letalidade_masc <- last(covid.pt$obitos_m) / last(covid.pt$confirmados_m)
 letalidade_genero <- as.data.frame(t(cbind(round(letalidade_fem,digits = 5), round(letalidade_masc, digits = 5))))
-  rownames(letalidade_genero)[1:2] <- c("Feminino", "Masculino")
-  colnames(letalidade_genero) [1] <- "Taxa_Letalidade"
+rownames(letalidade_genero)[1:2] <- c("Feminino", "Masculino")
+colnames(letalidade_genero) [1] <- "Taxa_Letalidade"
 
 letalidade_sex_adjusted_tabela_1 <- cbind(letalidade_genero, percentagem_confirmados_genero)
-  
+
 cross_products_sex_ajusted <- as.data.frame(letalidade_sex_adjusted_tabela_1[,1] * letalidade_sex_adjusted_tabela_1[,2])
-  colnames(cross_products_sex_ajusted) <- "Cross_products"
+colnames(cross_products_sex_ajusted) <- "Cross_products"
 
 letalidade_sex_adjusted_tabela_2 <- cbind(letalidade_sex_adjusted_tabela_1, cross_products_sex_ajusted)
 
 Total_sex <- c(round(letalidade[1,1], digits = 8), round(sum(letalidade_sex_adjusted_tabela_2$Percentagem_confirmados), digits = 1), sum(letalidade_sex_adjusted_tabela_2$Cross_products))
-  
+
 letalidade_sex_adjusted <- rbind(letalidade_sex_adjusted_tabela_2, Total_sex)
 row.names(letalidade_sex_adjusted)[3] <- "Total"
 
@@ -671,14 +669,14 @@ regioes_letalidade_nt <- cbind(letalidade_acores, letalidade_alentejo, letalidad
 
 regioes_letalidade <- as.data.frame(t(regioes_letalidade_nt))
 regioes_letalidade <- regioes_letalidade %>% 
-  rownames_to_column(var="Regi?es")
+  rownames_to_column(var="Regiões")
 names(regioes_letalidade)[2] <- "Taxa_Letalidade"
 
-ggplot(regioes_letalidade, aes(x=Regi?es, y=Taxa_Letalidade*100)) + 
+ggplot(regioes_letalidade, aes(x=Regiões, y=Taxa_Letalidade*100)) + 
   geom_col(fill="powderblue", width = 0.5) +
   scale_x_discrete(labels= c("A?ores", "Alentejo", "Algarve", "Centro", "Lisboa e Vale do Tejo", "Madeira", "Norte")) +
   theme_classic() +
-  labs(y="Taxa de letalidade (%)", title = "Taxa de letalidade da COVID-19 por regi?es", x="") +
+  labs(y="Taxa de letalidade (%)", title = "Taxa de letalidade da COVID-19 por Regiões", x="") +
   theme(plot.title = element_text(size = 20, hjust = 0.5)) +
   theme(axis.title.x = element_text(size = 15), axis.title.y = element_text(size = 15)) +
   geom_text(aes(label = scales::percent(Taxa_Letalidade, digits=4)), vjust=-0.5)
@@ -702,7 +700,7 @@ leaflet(mapa_portugal) %>%
               fillColor = ~pal_letalidade(regioes_letalidade_ordem$Taxa_Letalidade*100),
               label = labels_letalidade, 
               labelOptions = labelOptions(style = list("font-weight" = "normal", padding = "3px 8px"), textsize = "13px", direction = "auto")) %>% 
-  addLegend("bottomleft", pal = pal_letalidade, values = regioes_letalidade_ordem$Taxa_Letalidade, opacity = 0.5, title = "Taxa de letalidade por regi?o (%)") %>% 
+  addLegend("bottomleft", pal = pal_letalidade, values = regioes_letalidade_ordem$Taxa_Letalidade, opacity = 0.5, title = "Taxa de letalidade por região (%)") %>% 
   addTiles(group ="Original") %>%
   addProviderTiles(providers$CartoDB.Positron, group = "Positron") %>%
   addProviderTiles(providers$Esri.WorldImagery, group = "Sat?lite") %>%
@@ -717,92 +715,75 @@ names(letalidade_regioes_tempo) <- c("Data", "Norte", "Centro", "Lisboa e Vale d
 
 letalidade_regioes_tempo_melt <- reshape2::melt(letalidade_regioes_tempo, id.vars="Data")
 
-### falta por os meses no eixo do x e alargar as colunas da color
 ggplot(letalidade_regioes_tempo_melt, aes(x = Data, y = value*100, color = variable)) +
   geom_line() +
   #facet_grid(letalidade_regioes_tempo_melt$variable) +
   #guides(color = FALSE) +
-  xlab("M?s") +
+  xlab("Mês") +
   ylab("Taxa de Letalidade (%)")+
-  labs(title = "Taxa de letalidade da COVID-19 por regi?o ao longo do tempo") +
+  labs(title = "Taxa de letalidade da COVID-19 por região ao longo do tempo") +
   theme(plot.title = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 20, color = "black", hjust = 0.5)) +
   theme(axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 20), size = 15)) +
-  theme(axis.title.x = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 15))
+  theme(axis.title.x = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 15)) +
+  scale_x_date(date_breaks = "months", date_labels = "%b")
 
 
 
 
 # RECUPERADOS
-## N? de recuperados por confirmados
+## Nº de recuperados por confirmados
 
 recuperados_sd <-  as.data.frame(covid.pt$recuperados/covid.pt$confirmados)
 recuperados <- cbind(covid.pt$data, recuperados_sd)
- names(recuperados)[1:2] <- c("Data", "Percentagem_recuperados")
+names(recuperados)[1:2] <- c("Data", "Percentagem_recuperados")
 
-### falta por os meses no eixo do x 
 ggplot(recuperados, aes(x = Data, y = Percentagem_recuperados*100)) +
-   geom_line() +
-   xlab("M?s") +
-   ylab("Percentagem de Recuperados") +
-   labs(title="Percentagem de Recuperados da COVID-19") +
-   theme(plot.title = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 20, color = "black", hjust = 0.5)) +
-   theme(axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 20), size = 15)) +
-   theme(axis.title.x = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 15))
- 
+  geom_line() +
+  xlab("Mês") +
+  ylab("Percentagem de Recuperados") +
+  labs(title="Percentagem de Recuperados da COVID-19") +
+  theme(plot.title = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 20, color = "black", hjust = 0.5)) +
+  theme(axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 20), size = 15)) +
+  theme(axis.title.x = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 15)) +
+  scale_x_date(date_breaks = "months", date_labels = "%b")
+
 
 
 
 # INTERNADOS
-##Internados e internados UCI (n? absoluto)
+##Internados e internados UCI (Nº absoluto)
 
 numero_internados <- covid.pt[,c(1,15,16)]
-  names(numero_internados)[1:3] <- c("Data", "Internados", "Internados UCI")
+names(numero_internados)[1:3] <- c("Data", "Internados", "Internados UCI")
 
 numero_internados_melted <-  melt(numero_internados, id.vars="Data")
 
-### falta por os meses no eixo do x
 ggplot(numero_internados_melted, aes(x = Data, y = value, color = variable)) +
   geom_line() +
-  xlab("M?s") +
-  ylab("N? de internados e internados UCI")+
-  labs(title = "N? de internados e internados UCI com COVID-19 ao longo do tempo", color="") +
+  xlab("Mês") +
+  ylab("Nº de internados e internados UCI")+
+  labs(title = "Nº de internados e internados UCI com COVID-19 ao longo do tempo", color="") +
   theme(plot.title = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 20, color = "black", hjust = 0.5)) +
   theme(axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 20), size = 15)) +
-  theme(axis.title.x = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 15))
+  theme(axis.title.x = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 15)) +
+  scale_x_date(date_breaks = "months", date_labels = "%b")
 
 
-##Internados  e internados UCI (por n? de casos)
+##Internados  e internados UCI (por Nº de casos)
 
 percentagem_internados_sd <- as.data.frame(covid.pt[,15:16]/covid.pt$confirmados)
 percentagem_internados <- cbind(covid.pt$data, percentagem_internados_sd)
-  names(percentagem_internados)[1:3] <- c("Data", "Internados", "Internados UCI")
+names(percentagem_internados)[1:3] <- c("Data", "Internados", "Internados UCI")
 
 percentagem_internados_melted <- reshape2::melt(percentagem_internados, id.vars="Data")
 
-### falta por os meses no eixo do x
 ggplot(percentagem_internados_melted, aes(x = Data, y = value*100, color = variable)) +
   geom_line() +
-  xlab("M?s") +
+  xlab("Mês") +
   #scale_y_continuous(limits= c(0,5)) +
   ylab("Percentagem de internados e internados UCI")+
   labs(title = "Percentagem de internados e internados UCI com COVID-19 ao longo do tempo", color="") +
   theme(plot.title = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 20, color = "black", hjust = 0.5)) +
   theme(axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 20), size = 15)) +
-  theme(axis.title.x = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 15))
-
-
-
-
-# GitHub
-
-#install.packages("usethis")
-# library(usethis)
-# 
-# usethis::use_git_config(user.name = "carolina Merca",
-#                         user.email = "carolinamerka@gmail.com")
-# 
-# usethis::browse_github_token()
-usethis::edit_r_environ()
-# c48199e6d72c1dd51767f43d9fb6b87275c15226
-
-f27193b53afafc823dcaa496b2f25bcc73d75179
+  theme(axis.title.x = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 15)) +
+  scale_x_date(date_breaks = "months", date_labels = "%b")
