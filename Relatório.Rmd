@@ -1,0 +1,566 @@
+---
+title: "Análise COVID-19"
+author: "Estagiárias"
+date: "30/09/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## **Introdução**
+
+Com este relatório pretendemos fazer uma análise sobre COVID-19 em Portugal com base nos dados da DGS disponíveis em: <https://github.com/dssg-pt/covid19pt-data>.
+
+Este relatório teve como objetivo realizar uma análise detalhada dos seguintes tópicos:
+<ul>
+  <li>Sintomas</li>
+  <li>Testagem</li>
+  <li>Casos</li>
+  <li>Incidência</li>
+  <li>Prevalência</li>
+  <li>Testagem</li>
+  <li>Número de mortes</li>
+  <li>Taxa de mortalidade</li>
+  <li>Taxa de letalidade</li>
+  <li>Taxa de recuperação</li>
+  <li>Internanemtos</li>
+</ul>
+
+
+```{r warning=FALSE, message=FALSE}
+#Libraries
+library(data.table)
+library(ggplot2)
+library(grid)
+library(dplyr)
+library(tibble)
+library(reshape2)
+library(ggpubr)
+library(maps)
+library(ggiraph)
+library(leaflet)
+library(geojsonio)
+library(gganimate)
+library(plotly)
+library(RColorBrewer)
+library(sf)
+library(viridis)
+
+#Importar dados
+covid19pt <- fread("https://raw.githubusercontent.com/dssg-pt/covid19pt-data/master/data.csv")
+covid19pt_testes <- fread("https://raw.githubusercontent.com/dssg-pt/covid19pt-data/master/amostras.csv")
+
+#Data de chr para Date
+covid19pt$data <- as.Date(covid19pt$data,"%d-%m-%Y")
+covid19pt_testes$data <- as.Date(covid19pt_testes$data,"%d-%m-%Y")
+
+#Mapa de Portugal
+mapa_pt <- geojson_read("https://raw.githubusercontent.com/dssg-pt/covid19pt-data/master/extra/mapas/portugal.geojson",what = "sp")
+
+```
+
+## **Sintomas**
+
+Na base de dados utilizada, as colunas 41 à 46 apresentam a percentagem de casos infetados que reportaram o sintoma respetivo. O comportamento dos dados leva-nos a crer que estes valores sejam cumulativos.
+
+Estes dados só foram registados de dia 03/03/2020 até dia 16/08/2020 e, para além disso, tal como é referido na base de dados online, estes dados são relativos apenas a uma percentagem, não-especificada e variável, dos infetados. Por este motivo, apesar de termos realizado duas análises, estes resultados podem não ser fiáveis nem representativos da realidade.
+
+### Frequência Relativa
+
+```{r pressure, echo=TRUE, fig.align='center'}
+#Criar uma tabela com uma coluna para os sintomas, dar-lhe o nome "sintoma", mudar o nome de cada sintoma na tabela e criar outra coluna para os últimos valores registados de cada sintoma e dar-lhe o nome "percentagem"
+sintomas <- as.data.frame(t(covid19pt[173,41:46])) %>% 
+  rownames_to_column(var = "sintoma")
+names(sintomas)[2] = "frequencia"
+sintomas[, 1] = c("Tosse", "Febre", "Dificuldade Respiratória", "Cefaleia", "Dores Musculares", "Fraqueza Generalizada")
+
+#Fazer um gráfico de barras com os sintomas no eixo do x e a percentagem no eixo dos y
+ggplot(sintomas, aes(x = sintoma, y = frequencia*100)) +
+  geom_col(fill = "slategray3",  width = 0.7) +
+  scale_y_continuous(expand = c(0, 0)) +
+  coord_cartesian( ylim = c(0, max(sintomas$frequencia*100 + 10))) +
+  theme_classic() +
+  labs(x = "Sintomas",
+       y = "Frequência (%)") +
+  theme(axis.title.x = element_text(margin = margin(t = 15, b = 10), 
+                                    size = 12),
+        axis.title.y = element_text(margin = margin(r = 15, l = 10), 
+                                    size = 12),
+        axis.text.x = element_text(size=10, 
+                                   color = "black"),
+        axis.text.y = element_text(size=12, 
+                                   color = "black")) +
+  geom_text(aes(label = scales::percent(frequencia, digits = 2)), 
+            vjust = -0.5, 
+            size = 4) +
+  scale_x_discrete(labels = c("Cefaleia", "Dificuldade\nRespiratória", "Dores\nMusculares",
+                              "Febre", "Fraqueza\nGeneralizada", "Tosse"))
+
+```
+
+Os valores apresentadas neste gráfico de barras referem-se à percentagem de casos infetados que reportaram cada um dos sintomas. Até à data do atual relatório, o sintoma mais frequente é a tosse com 34%  dos infetados a apresentarem esse sintoma, seguindo-se a febre com 27% e a cefaleia e dores musculares ambos com 20%.
+
+### Frequência Relativa ao Longo do Tempo
+
+```{r fig.align='center'}
+#Criar uma tabela com colunas, uma para cada sintoma, sendo o valor para cada dia a frequência desse sintoma nesse dia vezes o número de confirmados até esse dia menos a frequência desse sintoma no dia anterior vezes o número de confirmados até ao dia anterior, isto para nos dar o número de pessoas com esse sintoma nesse dia apenas, e depois tudo a dividir pelo número de novos confirmados nesse dia para termos o resultado em percentagem. 
+sintomas_tempo <- as.data.frame((covid19pt[8:173,41:46]*covid19pt$confirmados[8:173])
+                                -(covid19pt[7:172, 41:46]*covid19pt$confirmados[7:172]))/covid19pt$confirmados_novos[8:173] 
+
+#É ainda necessário acrescentar a linha 7 pois como são as primerias frequências a aparecer já indicam a frequência específica para esse dia
+sintomas_tempo <- rbind(covid19pt[7, 41:46], sintomas_tempo)
+
+#Acresecentar à tabela que criámos, uma coluna com as datas
+sintomas_tempo <- cbind(covid19pt$data[7:173], sintomas_tempo)
+
+#No casos do sintoma Dificuldade Respiratória, este só começou a ser registado mais tarde pelo que o primerio valor que já representa a frequência específica para esse dia é o da linha 3, coluna 4
+sintomas_tempo[3, 4] <- 0.11
+
+#Mudar os nomes das colunas
+names(sintomas_tempo) <- c("Data", "Tosse", "Febre", "Dificuldade \nrespiratória", "Cefaleia", 
+                           "Dores \nMusculares",  "Fraqueza \nGeneralizada")
+
+#Fazer o melt da tablea para poder representar a ecolução temporal num gráfico e mudar o nome da coluna 2 para Sintomas
+sintomas_tempo_melt <-  melt(sintomas_tempo, id.vars="Data")
+names(sintomas_tempo_melt)[2] <- "sintoma"
+
+#Fazer um gráfico de linhas com a data no eixo do x, a frequência diária dos sintomas no eixo dos y e cada sintoma numa linha
+ggplot(sintomas_tempo_melt, aes(x = Data, y = value*100, color = sintoma)) +
+  geom_line() +
+  facet_grid(sintomas_tempo_melt$sintoma) +
+  guides(color = FALSE) +
+  labs(x = "Mês",
+       y = "Frequência (%)") +
+  theme(axis.title.x = element_text(margin = margin(t = 15, b = 10), 
+                                    size = 12),
+        axis.title.y = element_text(margin = margin(r = 15, l = 10),
+                                    size = 12),
+        strip.text.y = element_text(size = 6, 
+                                    angle = 0))
+```
+
+Para entender melhor este gráfico é necessário perceber que os valores negativos indicam que houve uma diminuição na percentagem de pessoas com determinado sintoma clínico. Os valores positivos indicam que houve um aumento dessa percentagem sendo que os valores positivos menores do que o do dia anterior, significam que houve crescimento, mas menor.
+
+Assim, é possível verificar que inicialmente existiu uma grande variação na frequência de casos confirmados que reportaram cada um dos sintomas. É de notar que a partir de junho esta variação foi sendo cada vez menor tornando os valores mais constantes, à exceção da tosse. 
+
+
+## **Testagem**
+
+Um dos fatores importantes a ter em conta é o número de pessoas testadas para COVID-19. Assim sendo, utilizámos outra base de dados da mesma fonte para obter informações relativas à testagem.
+
+### Evolução do Número de Testes Realizados
+
+Primeiro realizámos uma análise para poder observar a evolução no número de pessoas testadas.
+
+```{r}
+#Tabela com coluna para data e outra para número de testes feitos nesse dia
+testes_diarios <- covid19pt_testes[,c(1, 3)]
+names(testes_diarios) = c("Data", "Testes")
+
+#Gráfico de pontos e linhas com data no eixo do x e número de testes no eixo do y
+testes_diarios_grafico <- ggplot(testes_diarios, aes(x = Data, y = Testes)) + 
+  geom_point(color = "cadetblue") +
+  geom_line(size = 0.4, color = "cadetblue") +
+  labs(title = "Testes Realizados ao Longo do Tempo",
+       x = "Mês") +
+  theme(plot.title = element_text(size = 15, 
+                                  color = "black", 
+                                  hjust = 0.5),
+        axis.title.x = element_text(size = 12)) +
+  scale_x_date(breaks = "months", date_labels = "%B")
+
+#Fazer com que gráfico seja interativo
+ggplotly(testes_diarios_grafico) %>% 
+  layout(margin = margin(l =10),
+         yaxis = list(title = paste0(c(rep("&nbsp;", 20),
+                                       "Número de Testes",
+                                       rep("&nbsp;", 20),
+                                       rep("\n&nbsp;", 2)),
+                                     collapse = "")))
+```
+
+É ainda possível tirar outras conclusões nomeadamente que os dias com menor testagem se encontram maioritariamente ao domingo e que os dias com maior testagem se encontram principalmente às terças e quartas.
+
+
+### Evolução da Frequência de Casos Positivos por Total de Testes Realizados
+
+
+```{r}
+#Tabela com coluna para data e coluna para número de casos confirmados nesse dia
+casos_diarios <- covid19pt[, c(1, 12)]
+names(casos_diarios) = c("Data", "Casos")
+
+###Tabela com coluna para data e outra para casos desse dia a dividir por número de testes desse dia
+testes_positivos <- cbind(testes_diarios[,1], as.data.frame((casos_diarios[1:nrow(testes_diarios),2]/testes_diarios[,2])*100))
+names(testes_positivos) = c("Data", "Percentagem_Positivos")
+
+###Fazer gráfico com data no eixo do x e proporção de testes positivos no eixo do y
+testes_positivos_grafico <- ggplot(testes_positivos, aes(x = Data, y = Percentagem_Positivos)) +
+  geom_line(color = "lightseagreen") +
+  geom_point(color = "lightseagreen") +
+  labs(title = "Proporção de Testes Positivos ao Longo do Tempo", 
+       x = "Mês",
+       y = "Proporção (%)") +
+  scale_x_date(breaks = "months", date_labels = "%B")
+
+###Fazer com que gráfico seja interativo
+ggplotly(testes_positivos_grafico) %>% 
+  layout(margin = margin(l =10),
+         yaxis = list(title = paste0(c(rep("&nbsp;", 20),
+                                       "Proporção (%)",
+                                       rep("&nbsp;", 20),
+                                       rep("\n&nbsp;", 2)),
+                                     collapse = "")))
+```
+
+
+## **Casos**
+
+### Evolução da Relação entre a Incidência e a Testagem
+
+de modo a verificar de que forma é que a testagem influencia a incidência
+
+
+```{r}
+#Fazer gráfico de linhas com data no eixo do x e número de casos no eixo do y
+casos_diarios_grafico <- ggplot(casos_diarios, aes(x = Data, y = Casos))+
+  geom_point(color = "coral3") +
+  geom_line(size = 0.4, color = "coral3")+
+  labs(x = "Mês") +
+  theme(axis.title.x = element_text(size = 12)) +
+  scale_x_date(breaks = "months", date_labels = "%B")
+
+#Fazer com que gráfico seja interativo
+ggplotly(casos_diarios_grafico) %>% 
+  layout(margin = margin(l =10),
+         yaxis = list(title = paste0(c(rep("&nbsp;", 20),
+                                       "Incidência",
+                                       rep("&nbsp;", 20),
+                                       rep("\n&nbsp;", 2)),
+                                     collapse = "")))
+```
+
+
+### Número de casos por Região
+
+
+```{r}
+###Criar tabela com uma coluna para a região e outra para o valor mais recente do número de casos confirmados,
+###mudar o nome das colunas e mudar o nome das regiões
+casos_regioes <- as.data.frame(t(as.data.frame(lapply(covid19pt[,confirmados_arsnorte:confirmados_madeira],
+                                                      max, na.rm = TRUE))))%>% 
+  rownames_to_column(var = "Regioes")
+names(casos_regioes)[2] <- "Casos"
+casos_regioes[, 1] <- c("Norte", "Centro", "Lisboa e Vale \ndo Tejo", "Alentejo", "Algarve", "Açores", "Madeira")
+
+###Fazer um gráfico de barras com as regiões no eixo do x e o número de casos no eixo do y
+ggplot(casos_regioes, aes(x = Regioes, y = Casos)) +
+  geom_col(fill = "salmon1") +
+  scale_y_continuous(expand = c(0, 0)) +
+  coord_cartesian( ylim = c(0, max(casos_regioes$Casos + 10000))) +
+  theme_classic() +
+  labs(title = "Número de Casos por Região", 
+       x = "Região") +
+  theme(plot.title = element_text(margin = margin(t = 20, b = 20), 
+                                  size = 15, 
+                                  color = "Black", 
+                                  hjust = 0.5),
+        axis.title.x = element_text(margin = margin(t = 15, b = 10), 
+                                    size = 12),
+        axis.title.y = element_text(margin = margin(t = 0, r = 15, b = 0, l = 10), 
+                                    size = 12),
+        axis.text.x = element_text(size=10, color = "black"),
+
+        
+        axis.text.y = element_text(size=10, 
+                                   color = "black")) +
+  geom_text(aes(label = Casos), 
+            vjust = -0.5, 
+            size = 4)
+
+###mapa
+####Definir intervalos que queremos na legenda
+bins =  c(0, 200, 600, 1200, 1400, 10000, Inf)
+
+####Colocar as Regiãoes da tabela pela mesma ordem que a dos poligonos
+casos_regioes_ordem <- casos_regioes[c(4, 5, 6, 2, 7, 1, 3),]
+
+####Definir a palete de cores para o mapa
+pal <- colorBin("YlOrRd", domain = casos_regioes_ordem[,2], bins = bins)
+
+####Definir legenda que aparece quando se passa o rato pelo mapa
+labels <- sprintf(
+  "<strong>%s</strong><br/>%g casos",
+  casos_regioes_ordem[,1], casos_regioes_ordem[,2]
+) %>% lapply(htmltools::HTML)
+
+####Fazer o mapa
+leaflet(mapa_pt) %>% 
+  addTiles(group = "Normal") %>% 
+  addProviderTiles(providers$CartoDB.Positron, group = "Claro") %>% 
+  addProviderTiles(providers$CartoDB.DarkMatterNoLabels, group = "Escuro") %>% 
+  addLayersControl(
+    baseGroups = c("Normal", "Claro", "Escuro"),
+    options = layersControlOptions(collapsed = TRUE)
+  ) %>% 
+  addPolygons(
+    fillColor = ~pal(casos_regioes_ordem[,2]), 
+    weight = 2,
+    opacity = 1,
+    color = "white",
+    dashArray = "3",
+    fillOpacity = 0.7,
+    highlight = highlightOptions(
+      weight = 5,
+      color = "#666",
+      dashArray = "",
+      fillOpacity = 0.7,
+      bringToFront = TRUE),
+    label = labels,
+    labelOptions = labelOptions(style = list("font-weight" = "normal", 
+                                             padding = "3px 8px"),
+                                textsize = "15px",
+                                direction = "auto")) %>% 
+  addLegend(pal = pal, values = casos_regioes_ordem$Casos, opacity = 0.7, title = "Nº Casos",
+            position = "bottomright")
+```
+
+
+
+### Taxa de Incidência por Região ao Longo do Tempo
+
+```{r}
+###Valores da população de cada Região com base no INE
+acores = 242796
+alentejo = 705018
+algarve = 438635
+centro = 2216927
+lisboa = 2854802
+madeira = 254254
+norte = 3573961
+
+###Criar uma tabela com uma coluna para as Regiãoes e outra para o número de pessoas nessa Região
+populacao_regioes <- as.data.frame(c(norte, centro, lisboa, alentejo, algarve, acores, madeira), 
+                                   c("norte", "centro", "lisboa", "alentejo", "algarve", "Açores", "madeira"))
+
+###Fazer com que cada coluna seja uma Região e repetir cada número as vezes necessárias para ficar com o número
+###igual ao das colunas da base de dados
+populacao_regioes_rep <- as.data.frame(t(populacao_regioes[rep(seq_len(ncol(populacao_regioes)), each = nrow(covid19pt))]))
+
+###Calcular a incidência em cada Região fazendo os casos novos por Região a dividir pela população da Região 
+###menos os confirmados da Região menos os óbitos da Região e dar nomes a cada coluna
+incidencia_regioes <- cbind(covid19pt$data, (as.data.frame(covid19pt[, confirmados_arsnorte:confirmados_madeira] 
+                                                      - lag(covid19pt[, confirmados_arsnorte:confirmados_madeira]))) 
+                            / (populacao_regioes_rep - as.data.frame(covid19pt[,confirmados_arsnorte:confirmados_madeira] 
+                                                                     - covid19pt[,obitos_arsnorte:obitos_madeira])))
+names(incidencia_regioes) <- c("Data", "Norte", "Centro", "Lisboa e Vale do Tejo", "Alentejo", "Algarve",
+                               "Açores", "Madeira")
+
+###Fazer melt para fazer o gráfico e dar nomes a cada coluna
+incidencia_regioes_melt <- melt(incidencia_regioes, id.vars = "Data")
+names(incidencia_regioes_melt) <- c("data", "regiao", "valor")
+
+###Fazer o gráfico de linhas com a data no eixo do x, a incidência no eixo do y e a Região em cada linha
+ggplot(incidencia_regioes_melt, aes(x = data, y = valor*100, color = regiao)) +
+  geom_line() + 
+  labs(title = "Incidência por Região ao Longo do Tempo",
+       x = "Mês", 
+       y = "Incidência (%)") +
+  facet_grid(incidencia_regioes_melt$regiao) +
+  theme(plot.title = element_text(margin = margin(t = 20, b = 20),
+                                  size = 15, 
+                                  color = "Black", 
+                                  hjust = 0.5),
+        axis.title.x = element_text(margin = margin(t = 15, b = 10), 
+                                    size = 12),
+        axis.title.y = element_text(margin = margin(r = 15, l = 10), 
+                                    size = 12),
+        axis.text.y = element_text(size = 5),
+        strip.text.y = element_text(size = 8, angle = 0)) +
+  guides(color = FALSE) +
+  scale_x_date(breaks = "months", date_labels = "%B")
+```
+
+
+### Número de Casos por Faixa Etária e por Género
+
+
+```{r}
+#Selecionar as colunas de confirmados feminino para todas as idades e juntá-las numa tabela e fazer o mesmo para o masculino
+femininos <- as.data.frame(covid19pt %>% 
+                             dplyr::select(starts_with("confirmados_") & (ends_with("9_f")| ends_with("plus_f"))))
+
+masculinos <- as.data.frame(covid19pt %>% 
+                              dplyr::select((starts_with("confirmados_") & (ends_with("9_m")| ends_with("plus_m")))))
+
+#Selecionar o valor mais recente de cada coluna de modo a ficar com o número de casos até ao momento para cada faixa etária e para cada género
+casos_femininos_idade <- as.data.frame(lapply(femininos, last))
+casos_masculinos_idade <- as.data.frame(lapply(masculinos, last))
+
+#Somar a tabela dos femininos com a dos masculinos o que vai dar o número de casos até ao momento por idade apenas
+casos_total_idade <- as.data.frame(casos_femininos_idade + casos_masculinos_idade)
+
+#Criar tabela com uma colunda para a faixa etária e outra para o número de casos femininos e mudar coluna da faixa etária para os nomes adequados
+casos_femininos_idade_invertido <- as.data.frame(t(casos_femininos_idade)) %>% 
+  rownames_to_column(var = "Idade")
+names(casos_femininos_idade_invertido)[2] <- "Femininos"
+casos_femininos_idade_invertido[,1] <- c("0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80+")
+
+#Criar tabela com uma colunda para a faixa etária e outra para o número de casos masculinos e mudar coluna da faixa etária para os nomes adequados
+casos_masculinos_idade_invertido <- as.data.frame(t(casos_masculinos_idade)) %>% 
+  rownames_to_column(var = "Idade")
+names(casos_masculinos_idade_invertido)[2] <- "Masculinos"
+casos_masculinos_idade_invertido[,1] <- c("0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80+")
+
+#Criar tabela com uma colunda para a faixa etária e outra para o número de casos total e mudar coluna da faixa etária para os nomes adequados
+casos_total_idade_invertido <- as.data.frame(t(casos_total_idade)) %>% 
+  rownames_to_column(var = "Idade")
+names(casos_total_idade_invertido)[2] <- "Total"
+casos_total_idade_invertido[,1] <- c("0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80+")
+
+#Juntar as 3 tabelas que criámos
+casos_fem_masc <- merge(casos_femininos_idade_invertido, casos_masculinos_idade_invertido, by = "Idade")
+casos_fem_masc_tot <- merge(casos_fem_masc, casos_total_idade_invertido, by = "Idade")
+
+#Fazer melt para poder fazer gráfico 
+casos_fem_masc_tot_melt <- melt(casos_fem_masc_tot, id.vars = "Idade")
+names(casos_fem_masc_tot_melt) = c("Idade", "Genero", "Casos")
+
+###Fazer gráfico de barras com idade no eixo do x, o número de casos no eixo do y e o género em cada barra
+casos_fem_masc_tot_grafico <- ggplot(casos_fem_masc_tot_melt, aes(x = Idade, y = Casos, fill = Genero)) +
+  geom_col(position = "dodge") +
+  scale_y_continuous(expand = c(0, 0)) +
+  coord_cartesian(ylim = c(0, max(casos_fem_masc_tot_melt$Casos + 1000))) +
+  theme_classic() +
+  labs(title = "Casos por Idade e Género",
+       y = "Mortes") +
+  theme(plot.title = element_text(size = 15, 
+                                  color = "Black", 
+                                  hjust = 0.5), 
+        legend.title = element_blank(),
+        axis.title.x = element_text( size = 12),
+        axis.text.x = element_text(size=8, 
+                                   color = "black"),
+        axis.text.y = element_text(size=10,
+                                   color = "black")) +
+  guides(fill=guide_legend(title="Género")) +
+  scale_fill_manual(values = c("coral2", "lightblue", "saddlebrown"))
+
+#Fazer gráfico interativo
+ggplotly(casos_fem_masc_tot_grafico) %>% 
+  layout(margin = margin(l =10),
+         yaxis = list(title = paste0(c(rep("&nbsp;", 20),
+                                       "Número de Casos",
+                                       rep("&nbsp;", 20),
+                                       rep("\n&nbsp;", 2)),
+                                     collapse = "")),
+         legend = list(x = 1, y = 0))
+```
+
+### Taxa de Incidência por Género ao Longo do Tempo
+
+```{r}
+###Variáveis com a população total, feminina e masculina com base no INE
+populacao_pt = 10295909
+mulheres_pt = 5435932
+homens_pt = 4859977
+
+###Cálculo da incidência criando uma tabbela para o total, outra para mulheres e outra para homens
+incidencia_total <- as.data.frame(covid19pt$confirmados_novos/ (populacao_pt - covid19pt$confirmados - covid19pt$obitos))
+incidencia_homens <- as.data.frame((covid19pt$confirmados_m - lag(covid19pt$confirmados_m)) 
+                                   / (homens_pt - covid19pt$confirmados_m - covid19pt$obitos_m)) 
+incidencia_mulheres <- as.data.frame((covid19pt$confirmados_f - lag(covid19pt$confirmados_f)) 
+                                     / (mulheres_pt - covid19pt$confirmados_f - covid19pt$obitos_f))
+
+##Remover valores negativos devido a erro na base de dados original em que valor cumulativo do número casos homens 
+###e mulheres era 0 e não devia
+incidencia_homens[174:175,] <- NA
+incidencia_mulheres[174:175,] <- NA
+
+###Criar uma tabela com as 3 tabelas anteriores, adicionando uma coluna com a data e mudar os nomes das colunas
+incidencia <- data.frame(covid19pt$data, incidencia_total*100, incidencia_mulheres*100, incidencia_homens*100)
+names(incidencia) <- c("Data", "Total", "Mulheres", "Homens")
+
+###Fazer melt para poder fazer gráfico de linhas e dar nome à coluna do género
+incidencia_melt <- melt(incidencia, id.vars = "Data")
+names(incidencia_melt) <- c("Data", "Genero", "Incidencia")
+
+###Fazer gráfico de linhas com data no eixo do x, a incidencia no eixo do y e o género em cada linha
+incidencia_grafico <- ggplot(incidencia_melt, aes(x = Data, y = Incidencia, color = Genero)) +
+  geom_point(size = 0.4) +
+  geom_line(size = 0.4) +
+  facet_grid(incidencia_melt$Genero) +
+  theme(legend.position = "none") +
+  labs(title = "Incidência Diária por Género",
+       x = "", 
+       y ="") +
+  theme(plot.title = element_text(size = 15, color = "Black", 
+                                  hjust = 0.5),
+        axis.title.x = element_text(size = 12),
+        axis.title.y = element_text(size = 12),
+        axis.text.y = element_text(size = 8)) +
+  scale_x_date(breaks = "months", date_labels = "%B")
+
+###Tornar gráfico interativo
+ggplotly(incidencia_grafico) %>% 
+  layout(margin = margin(l =10),
+         yaxis = list(title = paste0(c(rep("&nbsp;", 4),
+                                       "Incidência (%)",
+                                       rep("&nbsp;", 35),
+                                       rep("\n&nbsp;", 2)),
+                                     collapse = "")),
+         xaxis = list(title = paste0(c(rep("<br>", 3),
+                                       "Mês",
+                                       rep("<br>", 4),
+                                       rep("<br />", 2)),
+                                     collapse = "")))
+      
+```
+
+### Taxa de Incidência por Faixa Etária ao Longo do Tempo
+
+```{r}
+###Pegando nas tabelas que fizémos por género or faixa etária, como os valores na base de dados são cumulativos, 
+###fazemos o valor desse dia menos o valor do dia anterior para obtermos o número de novos casos por dia, por faixa etária
+###por género
+femininos_novos <- femininos - lag(femininos)
+masculinos_novos <- masculinos - lag(masculinos)
+
+###Criar uma tabela com uma coluna para a data e outras colunas com o número de casos por dia por faixa etária apenas
+###que resultam da soma dos novos casos femininos com os novos casos masculinos
+casos_total_tempo <- cbind(covid19pt$data, as.data.frame(femininos_novos + masculinos_novos))
+
+###Como  linha 7 que é a primeira em que há registo dos casos já representa o número de casos nesse dia apenas,
+###adicionámos essa linha à tabela e dar nomes às colunas
+casos_total_tempo[7, 2:10] <- femininos[7,] + masculinos[7,]
+names(casos_total_tempo)<- c("Data", "0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80+")
+
+###Fazer melt para fazer o gráfico
+casos_total_tempo_melt <- melt(casos_total_tempo, id.vars = "Data")
+names(casos_total_tempo_melt) = c("Data", "Faixa_Etaria", "Casos")
+
+###Fazer o gráfico de linhas com a data no eixo do x, o número de casos no eixo do y e a faixa etária em cada linha
+casos_total_tempo_grafico <- ggplot(casos_total_tempo_melt, aes(x = Data, y = Casos, fill = Faixa_Etaria)) +
+  geom_area(alpha=0.6 , size=.5, colour="white") +
+  scale_fill_viridis(discrete = T) +
+  labs(title = "Casos por Grupo Etário ao Longo do Tempo",
+       x ="Mês", 
+       y = "Casos") +
+  theme(plot.title = element_text(size = 15, 
+                                  color = "black",
+                                  hjust=50),
+        legend.title = element_blank(),
+        axis.title.x = element_text(size = 12),
+        axis.title.y = element_text(size = 12),
+        axis.text.y = element_text(size = 5),
+        strip.text.y = element_text(size = 3, angle = 0)) +
+  scale_x_date(breaks = "months", date_labels = "%B")
+
+###Tornar gráfico interativo
+ggplotly(casos_total_tempo_grafico) %>% 
+  layout(margin = margin(l =10),
+         legend = list(x = 1, y = 0))
+```
+
