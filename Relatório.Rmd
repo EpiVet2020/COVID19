@@ -654,18 +654,9 @@ casos_fem_masc_tot_grafico <- ggplot(casos_fem_masc_tot_melt, aes(x = Idade, y =
   scale_y_continuous(expand = c(0, 0)) +
   coord_cartesian(ylim = c(0, max(casos_fem_masc_tot_melt$Casos + 1000))) +
   theme_classic() +
-<<<<<<< HEAD
   labs(x = "",
        y = "Mortes") +
   theme(legend.title = element_blank(),
-=======
-  labs(title = "Casos por Idade e Género",
-       y = "Mortes") +
-  theme(plot.title = element_text(size = 15, 
-                                  color = "Black", 
-                                  hjust = 0.5), 
-        legend.title = element_blank(),
->>>>>>> 8dff61ce2e6ba5a19416f75bb6deb11a5f9a3edb
         axis.title.x = element_text( size = 12),
         axis.text.x = element_text(size=8, 
                                    color = "black"),
@@ -840,17 +831,14 @@ Novamente neste gráfico, é possível observar que as faixas etárias dos 0 aos
 
 No caso das faixas etárias entre os 20 e os 39 anos, inicialmente apresentaram valores de taxa de incidência mais elevados, diminuindo posteriormente mas sempre com alguma instabilidade, não só por pertencerem a uma fração ativa da população mas também pela maior tendência para frequentar locais com maiores aglomerados de indivíduos. Dos 40 aos 59 anos o comportamento da curva é semelhante, no entanto manteve-se mais ou menos constante durante os meses de Verão, tendo voltado a aumentar a partir de setembro, o que vai de encontro às faixas etárias anteriores.
 
-<<<<<<< HEAD
-```{r, warning=FALSE}
-=======
 Relativamente às faixas etárias dos 60 aos 79 anos, podemos verificar que a taxa de incidência foi principalmente preocupante nos meses iniciais da pandemia, tendo depois estabilizado até meados de setembro, novamente resultante de uma crescente preocupação pelo grupo etário mais suscetível. Da mesma forma, a faixa etária dos 80+ apresentou uma taxa de incidência inicial alarmante, no entanto, sendo o principal grupo de risco, nunca conseguiu estabilizar da mesma forma, provavelmente decorrente de diversos surtos em lares ao longo do tempo.
 
 
 ```{r message= FALSE, warning= FALSE}
+
 #Repetir valores da população por faixa etária para ficar com mesmo número de linhas da base de dados
 populacao_idades_pt_rep <- as.data.frame(t(populacao_idades_pt[rep(seq_len(ncol(populacao_idades_pt)), each = nrow(covid19pt))]))
 
->>>>>>> 8dff61ce2e6ba5a19416f75bb6deb11a5f9a3edb
 #Selecionar as colunas de obitos feminino para todas as idades e juntá-las numa tabela e fazer o mesmo para o masculino
 femininos_mortes <- as.data.frame(covid19pt %>% 
                                     dplyr::select(starts_with("obitos_") & (ends_with("9_f")| ends_with("plus_f"))))
@@ -1118,7 +1106,6 @@ ggplot(mortos_regioes, aes(x = Regioes, y = Mortes)) +
   scale_y_continuous(expand = c(0, 0)) +
   coord_cartesian( ylim = c(0, max(mortos_regioes$Mortes + 125))) +
   theme_classic() +
-<<<<<<< HEAD
   theme(axis.title.y = element_text(size = 12))
 
 mortos_regioes_grafico_interativo <- ggplotly(mortos_regioes_grafico) %>% 
@@ -1127,16 +1114,6 @@ mortos_regioes_grafico_interativo <- ggplotly(mortos_regioes_grafico) %>%
                                        rep("&nbsp;", 20),
                                        rep("\n&nbsp;", 2)),
                                      collapse = "")))
-=======
-  theme(axis.title.x = element_text(margin = margin(t = 20, b = 20), 
-                                    size = 12),
-        axis.title.y = element_text(margin = margin(r = 20, l = 20), size = 12),
-        axis.text.x = element_text(size=12, color = "black"),
-        axis.text.y = element_text(size=12, color = "black")) +
-  geom_text(aes(label = Mortes), 
-            vjust = -0.5, 
-            size = 4)
->>>>>>> 8dff61ce2e6ba5a19416f75bb6deb11a5f9a3edb
 
 #mapa
 #Da tabela anterior com todas as datas, selecionar apenas o valor mais recente e mudar nome coluna e Regiãoes
