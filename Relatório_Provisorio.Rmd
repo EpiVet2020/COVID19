@@ -973,7 +973,7 @@ Neste tópico vamos abordar a mortalidade em valor absoluto (número de mortes),
 #### Relação com a Evolução da Incidência
 <br>
 
-A evolução do número de mortes diárias tende a acompanhar a evolução do número de casos diários. Inicialmente, como os casos diagnosticados eram mais graves, os pacientes morriam mais cedo e por essa razão o desfasamento entre os casos e as mortes não era tão acentuado. Com a evolução da pandemia, começou a ser feito um diagnosticados mais precoce, o que aumentou o intervalo entre o diagnóstico e a morte. 
+A evolução do número de mortes diárias tende a acompanhar a evolução do número de casos diários. Inicialmente, como os casos diagnosticados eram mais graves, os pacientes morriam mais cedo e por essa razão o desfasamento entre os casos e as mortes não era tão acentuado. Com a evolução da pandemia, começou a ser feito um diagnóstico mais precoce, o que aumentou o intervalo entre o diagnóstico e a morte. 
 
 De forma geral, o número de mortes diárias tem vindo a decrescer. À data da análise, podemos verificar que mesmo perante um grande aumento no número de casos diários, o número de mortes não tem acompanhado este aumento. Isto pode dever-se a um maior conhecimento sobre a doença, à maior incidência nas faixas etárias mais jovens e, talvez, uma menor virulência do vírus.
 
