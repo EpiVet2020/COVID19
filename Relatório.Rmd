@@ -308,10 +308,9 @@ casos_regioes[, 1] <- c("Norte", "Centro", "LVT", "Alentejo", "Algarve", "Açore
 
 #Fazer um gráfico de barras com as regiões no eixo do x e o número de casos no eixo do y
 casos_regioes_grafico <- ggplot(casos_regioes, aes(x = Regioes, y = Casos)) +
-  geom_col(fill = "salmon1") +
+  geom_col(fill = "salmon1", width = 0.5) +
   theme_classic() +
   scale_y_continuous(expand = c(0, 0)) +
-  coord_cartesian( ylim = c(0, max(casos_regioes$Casos + 1000))) +
   labs(x = "") +
   theme(axis.title.y = element_text(size = 12))
 
@@ -417,7 +416,7 @@ prevalencia_regiao[,1] <- c("Norte", "Centro", "LVT", "Alentejo", "Algarve", "A�
 prevalencia_regiao_grafico <- ggplot(prevalencia_regiao, aes(x=Regiao, y=Prevalencia)) + 
   geom_col(fill="palegreen", width = 0.5) +
   scale_y_continuous(expand = c(0, 0)) +
-  coord_cartesian( ylim = c(0, max(prevalencia_regiao$Prevalencia + 0.1))) +
+  #coord_cartesian( ylim = c(0, max(prevalencia_regiao$Prevalencia + 0.1))) +
   theme_classic() +
   labs(y="Prevalência (%)", x="") +
   theme(axis.title.y = element_text(size = 12))
@@ -748,7 +747,7 @@ names(prevalencia_idade)[2] = "Prevalencia"
 
 #Fazer gráfico com faixa etária no eixo do x e prevalência no eixo do y
 prevalencia_idade_grafico <- ggplot(prevalencia_idade, aes(x = Faixa_Etaria, y = Prevalencia)) +
-  geom_col(fill = "coral2") +
+  geom_col(fill = "coral2", width = 0.5) +
   scale_y_continuous(expand = c(0, 0)) +
   coord_cartesian( ylim = c(0, max(prevalencia_idade$Prevalencia + 0.2))) +
   theme_classic() +
@@ -1066,7 +1065,7 @@ mortos_regioes[, 1] <- c("Norte", "Centro", "LVT", "Alentejo", "Algarve", "Açor
 
 #Fazer gráfico com Regiãoes no eixo do x e número de mortes no eixo do y
 mortos_regioes_grafico <- ggplot(mortos_regioes, aes(x = Regioes, y = Mortes)) +
-  geom_col(fill = "salmon1") +
+  geom_col(fill = "salmon1", width = 0.5) +
   scale_y_continuous(expand = c(0, 0)) +
   coord_cartesian( ylim = c(0, max(mortos_regioes$Mortes + 125))) +
   labs(x = "") +
@@ -1169,7 +1168,7 @@ mortalidade[, 1] <- c("Total", "Mulheres", "Homens")
 
 #Criar um gráfico de barras com o genero no eixo do x e a mortalidade no eixo do y
 ggplot(mortalidade, aes(x = genero, y = mortalidade*100)) +
-  geom_col(fill = "salmon1") +
+  geom_col(fill = "salmon1", width = 0.5) +
   scale_y_continuous(expand = c(0, 0)) +
   coord_cartesian( ylim = c(0, max(mortalidade$mortalidade*106))) +
   theme_classic() +
@@ -1199,9 +1198,9 @@ names(mortalidade_idade) = c("Faixa_Etaria", "Taxa_Mortalidade")
 
 #Fazer o gráfico com faixa etária no eixo do x e taxa de mortalidade no eixo do y
 mortalidade_idade_grafico <- ggplot(mortalidade_idade, aes(x = Faixa_Etaria, y = Taxa_Mortalidade)) +
-  geom_col(fill = "salmon1") +
+  geom_col(fill = "salmon1", width = 0.5) +
   scale_y_continuous(expand = c(0, 0)) +
-  coord_cartesian( ylim = c(0, max(mortalidade_idade$Taxa_Mortalidade + 0.01))) +
+  #coord_cartesian( ylim = c(0, max(mortalidade_idade$Taxa_Mortalidade + 0.01))) +
   theme_classic() +
   labs(x = "") +
   theme(axis.title.y = element_text(margin = margin(r = 20, l = 20), 
@@ -1235,9 +1234,9 @@ mortalidade_regioes[, 1] <- c("Norte", "Centro", "LVT", "Alentejo", "Algarve", "
 
 #Fazer gráfico com Regiãoes no eixo do x e mortaldiade no eixo do y
 mortalidade_regioes_grafico <- ggplot(mortalidade_regioes, aes(x = Regiao, y = Mortalidade)) +
-  geom_col(fill = "gray") +
+  geom_col(fill = "gray", width = 0.5) +
   scale_y_continuous(expand = c(0, 0)) +
-  coord_cartesian( ylim = c(0, max(mortalidade_regioes$Mortalidade + 0.01))) +
+  #coord_cartesian( ylim = c(0, max(mortalidade_regioes$Mortalidade + 0.01))) +
   theme_classic() +
   labs(x="") +
   theme(axis.text.y = element_text(size=12))
@@ -1333,9 +1332,9 @@ letalidade[, 1] <- c("Total", "Mulheres", "Homens")
 
 #Criar um gráfico de barras com o genero no eixo do x e a letalidade no eixo do y
 ggplot(letalidade, aes(x = genero, y = letalidade*100)) +
-  geom_col(fill = "salmon1") +
+  geom_col(fill = "salmon1", width = 0.5) +
   scale_y_continuous(expand = c(0, 0)) +
-  coord_cartesian( ylim = c(0, max(letalidade$letalidade*100 + 4))) +
+  coord_cartesian( ylim = c(0, max(letalidade$letalidade*100 + 1))) +
   theme_classic() +
   labs(x = "",
        y = "Taxa de Letalidade(%)") +
@@ -1500,9 +1499,9 @@ letalidade_regioes[, 1] <- c("Norte", "Centro", "LVT", "Alentejo", "Algarve", "A
 
 #Fazer o gráfico com a Região no eixo do x e a letalidade no eixo do y
 letalidade_regioes_grafico <- ggplot(letalidade_regioes, aes(x = Regiao, y = Letalidade)) +
-  geom_col(fill = "gray") +
+  geom_col(fill = "gray", width = 0.5) +
   scale_y_continuous(expand = c(0, 0)) +
-  coord_cartesian( ylim = c(0, max(letalidade_regioes$Letalidade + 0.2))) +
+  #coord_cartesian( ylim = c(0, max(letalidade_regioes$Letalidade + 0.2))) +
   theme_classic() +
   labs(x = "") +
   theme(axis.text.y = element_text(size=12))
