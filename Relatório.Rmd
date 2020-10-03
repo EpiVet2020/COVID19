@@ -569,7 +569,7 @@ incidencia_regioes_tempo_mapa <- leaflet(mapa_pt) %>%
                                              padding = "3px 8px"),
                                 textsize = "15px",
                                 direction = "auto")) %>% 
-  addLegend(pal = pal_7, values = incidencia_regioes_recente[,2], opacity = 0.7, title = "incidência",
+  addLegend(pal = pal_7, values = incidencia_regioes_recente[,2], opacity = 0.7, title = "Incidência Atual",
             position = "bottomright")
 
 browsable(
@@ -691,7 +691,8 @@ casos_fem_masc_tot_grafico <- ggplot(casos_fem_masc_tot_melt, aes(x = Idade, y =
   scale_y_continuous(expand = c(0, 0)) +
   coord_cartesian(ylim = c(0, max(casos_fem_masc_tot_melt$Casos + 1000))) +
   theme_classic() +
-  labs(y = "Mortes") +
+  labs(x = "",
+       y = "Mortes") +
   theme(legend.title = element_blank(),
         axis.title.x = element_text( size = 12),
         axis.text.x = element_text(size=8, 
@@ -716,7 +717,6 @@ ggplotly(casos_fem_masc_tot_grafico) %>%
 
 <br>
 
-(VER SE ESTÁ BEM)
 
 Neste gráfico de barras é possível ver que, à data desta análise, a faixa etária com maior prevalência é a dos 80+ anos. Isto pode ser explicado pelo facto de esta ser a principal faixa etária presente nos lares, locais onde têm ocorrido surtos.
 
@@ -757,12 +757,57 @@ prevalencia_idade_grafico <- ggplot(prevalencia_idade, aes(x = Faixa_Etaria, y =
         axis.text.y = element_text(size=12, color = "black"))
 
 #Tornar gráfico interativo
-ggplotly(prevalencia_idade_grafico) %>% 
+prevalencia_idade_grafico_interativo <- ggplotly(prevalencia_idade_grafico) %>% 
   layout(yaxis = list(title = paste0(c(rep("&nbsp;", 20),
                                        "Prevalência (%)",
                                        rep("&nbsp;", 20),
                                        rep("\n&nbsp;", 2)),
                                      collapse = "")))
+
+#Prevalência por faixa etária diária
+##Repetir valores da população por faixa etária para ficar com mesmo número de linhas da base de dados
+populacao_idades_pt_rep <- as.data.frame(t(populacao_idades_pt[rep(seq_len(ncol(populacao_idades_pt)), each = nrow(covid19pt))]))
+
+##Cálculo da prevalência
+prevalencia_tempo_idade <- cbind(covid19pt$data, ((femininos + masculinos) / populacao_idades_pt_rep)*100)
+names(prevalencia_tempo_idade) = c("Data", "0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80+")
+
+##Fazer melt para fazer o gráfico
+prevalencia_tempo_idade_melt <- melt(prevalencia_tempo_idade, id.vars = "Data")
+names(prevalencia_tempo_idade_melt) = c("Data", "Faixa_Etaria", "Prevalencia")
+
+##Fazer gráfico de linhas com data no eixo do x, prevalência no eixo do y e faixa etária nas cores das linhas
+prevalencia_tempo_idade_grafico <- ggplot(prevalencia_tempo_idade_melt, aes(x = Data, y = Prevalencia, color = Faixa_Etaria)) +
+  geom_line() +
+  labs(x = "") +
+  theme(legend.title = element_blank(),
+        axis.title.y = element_text(size = 12),
+        axis.title.x = element_text(size = 12),
+        legend.text = element_text(size = 8),
+        axis.text.x = element_text(size = 6)) +
+  scale_x_date(breaks = "months", date_labels = "%B")
+
+##Tornar o grafico interativo
+prevalencia_tempo_idade_grafico_interativo <- ggplotly(prevalencia_tempo_idade_grafico) %>% 
+  layout(yaxis = list(title = paste0(c(rep("&nbsp;", 20),
+                                       "Prevalência (%)",
+                                       rep("&nbsp;", 20),
+                                       rep("\n&nbsp;", 1)),
+                                     collapse = "")),
+         legend = list(x = 1, y = 0))
+
+browsable(
+  tagList(list(
+    tags$div(
+      style = 'width:50%;display:block;float:left;',
+      prevalencia_idade_grafico_interativo
+    ),
+    tags$div(
+      style = 'width:50%;display:block;float:left;',
+      prevalencia_tempo_idade_grafico_interativo
+    )
+  ))
+)
 
 
 ```
@@ -797,7 +842,7 @@ names(casos_total_tempo_melt) = c("Data", "Faixa_Etaria", "Casos")
 #Fazer o gráfico de linhas com a data no eixo do x, o número de casos no eixo do y e a faixa etária em cada linha
 casos_total_tempo_grafico <- ggplot(casos_total_tempo_melt, aes(x = Data, y = Casos, fill = Faixa_Etaria)) +
   geom_area(alpha=0.6 , size=.5) +
-  labs(x ="Mês", 
+  labs(x ="", 
        y = "Casos") +
   theme(legend.title = element_blank(),
         axis.title.x = element_text(size = 12),
@@ -818,9 +863,6 @@ ggplotly(casos_total_tempo_grafico) %>%
 (VER SE ESTÁ BEM)
 
 ```{r, warning=FALSE}
-#Repetir valores da população por faixa etária para ficar com mesmo número de linhas da base de dados
-populacao_idades_pt_rep <- as.data.frame(t(populacao_idades_pt[rep(seq_len(ncol(populacao_idades_pt)), each = nrow(covid19pt))]))
-
 #Selecionar as colunas de obitos feminino para todas as idades e juntá-las numa tabela e fazer o mesmo para o masculino
 femininos_mortes <- as.data.frame(covid19pt %>% 
                                     dplyr::select(starts_with("obitos_") & (ends_with("9_f")| ends_with("plus_f"))))
@@ -1075,7 +1117,7 @@ mortos_regioes_grafico <- ggplot(mortos_regioes, aes(x = Regioes, y = Mortes)) +
 
 mortos_regioes_grafico_interativo <- ggplotly(mortos_regioes_grafico) %>% 
   layout(yaxis = list(title = paste0(c(rep("&nbsp;", 20),
-                                       "Taxa de Mortalidade (%)",
+                                       "Mortalidade",
                                        rep("&nbsp;", 20),
                                        rep("\n&nbsp;", 2)),
                                      collapse = "")))
@@ -1128,7 +1170,7 @@ mortos_regioes_mapa <- leaflet(mapa_pt) %>%
                                              padding = "3px 8px"),
                                 textsize = "15px",
                                 direction = "auto")) %>% 
-  addLegend(pal = pal, values = incidencia_regioes_ordem[,2]*100, opacity = 0.7, title = "Nº Mortos",
+  addLegend(pal = pal_3, values = incidencia_regioes_ordem[,2], opacity = 0.7, title = "Nº Mortos",
             position = "bottomright")
 
 browsable(
@@ -1258,12 +1300,12 @@ bins_4 =  c(0, 0.002, 0.004, 0.006, 0.008, 0.01, 0.02, Inf)
 mortalidade_regioes_ordem <- mortalidade_regioes[c(4, 5, 6, 2, 7, 1, 3),]
 
 ####Definir a palete de cores
-pal_4 <- colorBin("YlOrRd", domain = mortalidade_regioes_ordem[,2]*100, bins = bins_4)
+pal_4 <- colorBin("YlOrRd", domain = mortalidade_regioes_ordem[,2], bins = bins_4)
 
 ##Definir a legenda quando se passa com o rato por cima
 labels_4 <- sprintf(
   "<strong>%s</strong><br/>%g&#x25 Mortalidade",
-  mortalidade_regioes_ordem[,1], round(mortalidade_regioes_ordem[,2]*100, digits =  3)
+  mortalidade_regioes_ordem[,1], round(mortalidade_regioes_ordem[,2], digits =  3)
 ) %>% lapply(htmltools::HTML)
 
 ##Fazer o map
@@ -1276,7 +1318,7 @@ mortalidade_regioes_mapa <- leaflet(mapa_pt) %>%
     options = layersControlOptions(collapsed = TRUE)
   ) %>% 
   addPolygons(
-    fillColor = ~pal_4(mortalidade_regioes_ordem[,2]*100), 
+    fillColor = ~pal_4(mortalidade_regioes_ordem[,2]), 
     weight = 2,
     opacity = 1,
     color = "white",
@@ -1293,7 +1335,7 @@ mortalidade_regioes_mapa <- leaflet(mapa_pt) %>%
                                              padding = "3px 8px"),
                                 textsize = "15px",
                                 direction = "auto")) %>% 
-  addLegend(pal = pal, values = mortalidade_regioes_ordem[,2]*100, opacity = 0.7, title = "Mortalidade",
+  addLegend(pal = pal_4, values = mortalidade_regioes_ordem[,2], opacity = 0.7, title = "Mortalidade",
             position = "bottomright")
 
 browsable(
@@ -1376,7 +1418,7 @@ names(letalidade_tempo_melt) <- c("Data", "Genero", "Letalidade")
 #Fazer gráfico de linhas com a data no eixo do x, a letalidade no eixo do y e o género em cada linha
 letalidade_tempo_grafico <- ggplot(letalidade_tempo_melt, aes(x = Data, y = Letalidade, color = Genero)) +
   geom_line() +
-  labs(x = "Mês",
+  labs(x = "",
        y = "Letalidade (%)") +
   theme(legend.title = element_blank(),
         axis.title.x = element_text(size = 12),
@@ -1419,7 +1461,7 @@ letalidade_genero_idade_melt <- melt(letalidade_genero_idade, id.vars = "Idade")
 letalidade_genero_idade_grafico <- ggplot(letalidade_genero_idade_melt, aes(x = Idade, y = value*100, color = variable, 
                                                                 tooltip = round(value*100, digits = 2), data_id = value)) +
   geom_point_interactive() +
-  labs(x ="Faixa etária (anos)",
+  labs(x ="",
        y = "Letalidade (%)") +
   theme(axis.title.x = element_text(margin = margin(t = 20, b = 20,), 
                                     size = 12),
@@ -1463,9 +1505,7 @@ letalidade_tempo_idade_melt <- melt(letalidade_tempo_idade, id.vars = "Data")
 #Fazer o gráfico
 ggplot(letalidade_tempo_idade_melt, aes(x = Data, y = value*100, color = variable)) +
   geom_line(size = 1) +
-  facet_grid(letalidade_tempo_idade_melt$variable) +
-  guides(color = FALSE) +
-  labs(x ="Mês",
+  labs(x ="",
        y = "Letalidade (%)") +
   theme(axis.title.x = element_text(margin = margin(t = 20 ,b = 20), 
                                     size = 15),
@@ -1522,12 +1562,12 @@ bins_5 =  c(0, 1, 2, 3, 4, 5, 6, 7, Inf)
 letalidade_regioes_ordem <- letalidade_regioes[c(4, 5, 6, 2, 7, 1, 3),]
 
 ##Definir a palete de cores
-pal_5 <- colorBin("YlOrRd", domain = letalidade_regioes_ordem[,2]*100, bins = bins_5)
+pal_5 <- colorBin("YlOrRd", domain = letalidade_regioes_ordem[,2], bins = bins_5)
 
 ##Definir a legenda quando se passa com o rato por cima
 labels_5 <- sprintf(
   "<strong>%s</strong><br/>%g&#x25 Letalidade",
-  letalidade_regioes_ordem[,1], round(letalidade_regioes_ordem[,2]*100, digits =  2)
+  letalidade_regioes_ordem[,1], round(letalidade_regioes_ordem[,2], digits =  2)
 ) %>% lapply(htmltools::HTML)
 
 ##Fazer o mapa
@@ -1540,7 +1580,7 @@ letalidade_regioes_mapa <- leaflet(mapa_pt) %>%
     options = layersControlOptions(collapsed = TRUE)
   ) %>% 
   addPolygons(
-    fillColor = ~pal_5(letalidade_regioes_ordem[,2]*100), 
+    fillColor = ~pal_5(letalidade_regioes_ordem[,2]), 
     weight = 2,
     opacity = 1,
     color = "white",
@@ -1557,7 +1597,7 @@ letalidade_regioes_mapa <- leaflet(mapa_pt) %>%
                                              padding = "3px 8px"),
                                 textsize = "15px",
                                 direction = "auto")) %>% 
-  addLegend(pal = pal, values = letalidade_regioes_ordem[,2]*100, opacity = 0.7, title = "Letalidade",
+  addLegend(pal = pal_5, values = letalidade_regioes_ordem[,2], opacity = 0.7, title = "Letalidade",
             position = "bottomright")
 
 browsable(
@@ -1602,7 +1642,7 @@ names(letalidade_regioes_tempo_melt) = c("Data", "Regiao", "Letalidade")
 letalidade_regioes_tempo_grafico <- ggplot(letalidade_regioes_tempo_melt, aes(x = Data, y = Letalidade, 
                                                                               color = Regiao)) +
   geom_line() +
-  labs(x = "Mês",
+  labs(x = "",
        y ="Letalidade (%)") +
   theme(legend.title = element_blank(),
         axis.title.y = element_text(size = 12),
