@@ -3,21 +3,21 @@ title: "Análise COVID-19"
 author: "Estagiárias"
 date: "30/09/2020"
 output:
-  html_notebook:
-    code_folding: hide
-    theme: lumen
-    toc: yes
-    toc_depth: 3
-    toc_float: yes
-  pdf_document:
-    toc: yes
-    toc_depth: '3'
   html_document:
     code_folding: hide
     df_print: paged
     theme: lumen
     toc: yes
     toc_depth: 3
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+  html_notebook:
+    code_folding: hide
+    theme: lumen
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
 editor_options: 
   chunk_output_type: inline
 ---
@@ -684,6 +684,8 @@ ggplotly(casos_fem_masc_tot_grafico) %>%
 
 <br>
 
+(VER SE ESTÁ BEM)
+
 Neste gráfico de barras é possível ver que, à data desta análise, a faixa etária com maior prevalência é a dos 80+ anos. Isto pode ser explicado pelo facto de esta ser a principal faixa etária presente nos lares, locais onde têm ocorrido surtos.
 
 A faixa etária dos 20 aos 29 anos é a que apresenta a segunda maior prevalência, sendo notório que este valor vai diminuindo à medida que a faixa etária envelhece, com exceção da faixa etária dos 80+, como explicado anteriormente. Isto pode dever-se ao aumento do receio da doença com o aumento da idade.
@@ -691,6 +693,45 @@ A faixa etária dos 20 aos 29 anos é a que apresenta a segunda maior prevalênc
 As faixas etárias entre os 9 e os 19 anos são as que têm as prevalências mais baixas, o que pode ser explicado pelo encerramento das escolas que promoveu uma maior proteção das crianças. É ainda prematuro tirar conclusões sobre o impacto que a reabertura das escolas terá na prevalência destas faixas etárias.
 
 ```{r}
+#Dados da população de portugal em <https://www.pordata.pt/Portugal/Popula%C3%A7%C3%A3o+residente++m%C3%A9dia+anual+total+e+por+grupo+et%C3%A1rio-10>
+
+pt_0_9 = 433332	+ 461299
+pt_10_19 = 507646 + 549033
+pt_20_29 = 544575 + 547505
+pt_30_39 = 571355 + 679093
+pt_40_49 = 792670 + 782555
+pt_50_59 = 747581 + 734540
+pt_60_69 = 672758 + 620543
+pt_70_79 = 544016 + 429107
+pt_80_plus = 352218 + 316442
+
+#Fazer tabela com população por faixa etária
+populacao_idades_pt <- as.data.frame(c(pt_0_9, pt_10_19, pt_20_29, pt_30_39, pt_40_49, pt_50_59, pt_60_69, pt_70_79, pt_80_plus))
+
+#Calcular prevalência
+prevalencia_idade <- ((as.data.frame(t(casos_total_idade)))*100 / populacao_idades_pt) %>%  
+  rownames_to_column(var = "Faixa_Etaria")
+prevalencia_idade[,1] = c("0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80+")
+names(prevalencia_idade)[2] = "Prevalencia"
+
+#Fazer gráfico com faixa etária no eixo do x e prevalência no eixo do y
+prevalencia_idade_grafico <- ggplot(prevalencia_idade, aes(x = Faixa_Etaria, y = Prevalencia)) +
+  geom_col(fill = "coral2") +
+  scale_y_continuous(expand = c(0, 0)) +
+  coord_cartesian( ylim = c(0, max(prevalencia_idade$Prevalencia + 0.2))) +
+  theme_classic() +
+  labs(x = "") +
+  theme(axis.text.x = element_text(size=8, color = "black"),
+        axis.text.y = element_text(size=12, color = "black"))
+
+#Tornar gráfico interativo
+ggplotly(prevalencia_idade_grafico) %>% 
+  layout(yaxis = list(title = paste0(c(rep("&nbsp;", 20),
+                                       "Prevalência (%)",
+                                       rep("&nbsp;", 20),
+                                       rep("\n&nbsp;", 2)),
+                                     collapse = "")))
+
 
 ```
 
@@ -741,15 +782,83 @@ ggplotly(casos_total_tempo_grafico) %>%
 
 
 #### Evolução Taxa de Incidência por Faixa Etária
+<br>
+
+(VER SE ESTÁ BEM)
 
 ```{r}
+#Repetir valores da população por faixa etária para ficar com mesmo número de linhas da base de dados
+populacao_idades_pt_rep <- as.data.frame(t(populacao_idades_pt[rep(seq_len(ncol(populacao_idades_pt)), each = nrow(covid19pt))]))
+
+#Selecionar as colunas de obitos feminino para todas as idades e juntá-las numa tabela e fazer o mesmo para o masculino
+femininos_mortes <- as.data.frame(covid19pt %>% 
+                                    dplyr::select(starts_with("obitos_") & (ends_with("9_f")| ends_with("plus_f"))))
+
+masculinos_mortes <- as.data.frame(covid19pt %>% 
+                                     dplyr::select((starts_with("obitos_") & (ends_with("9_m")| ends_with("plus_m")))))
+
+#Calcular a população de risco subtraindo à população por faixa etária o número de óbitos e o número de casos até ao momento                
+populacao_risco_idade <- populacao_idades_pt_rep - femininos_mortes - masculinos_mortes - femininos - masculinos
+
+#Calcular a taxa de incidência, retirando a coluna das datas
+taxa_incidencia_idade <- (casos_total_tempo[,-1]/populacao_risco_idade)*100
+
+#Voltar a adicionar a coluna da data e fazer melt para fazer o gráfico
+taxa_incidencia_idade <- cbind(covid19pt$data, taxa_incidencia_idade)
+names(taxa_incidencia_idade)[1] = "Data"
+taxa_incidencia_idade_melt <- melt(taxa_incidencia_idade, id.vars = "Data")
+names(taxa_incidencia_idade_melt) = c("Data", "Faixa_Etaria", "Taxa_Incidencia")
+
+#Fazer gráfico de linhas com data no eixo do x, taxa de incidência no eixo do y e faixa etária nas cores das linhas
+ggplot(taxa_incidencia_idade_melt, aes(x = Data, y = Taxa_Incidencia, color = Faixa_Etaria)) +
+  geom_line(size = 0.8)+
+  facet_grid(taxa_incidencia_idade_melt$Faixa_Etaria)+
+  guides(color = FALSE) +
+  labs(x = "",
+       y ="Taxa de Incidência (%)") +
+  theme(axis.title.y = element_text(margin = margin(r = 20, l = 20),
+                                    size = 12),
+        axis.text.y = element_text(size = 8),
+        strip.text.y = element_text(size = 8, angle = 0)) +
+  scale_x_date(breaks = "months", date_labels = "%B")
 
 ```
 
 #### Evolução da Incidência por Género
+<br>
+
+(VER SE ESTÁ BEM)
 
 ```{r}
+#Duas tabelas com casos diários, uma para cada género
+femininos_total_novos <- as.data.frame(covid19pt$confirmados_f - lag(covid19pt$confirmados_f))
+masculinos_total_novos <- as.data.frame(covid19pt$confirmados_m - lag(covid19pt$confirmados_m))
 
+#Juntar as tabelas e adicionar coluna com data
+incidencia_genero <- cbind(covid19pt$data, femininos_total_novos, masculinos_total_novos)
+names(incidencia_genero) = c("Data", "Feminino", "Masculino")
+
+#Fazer melt para fazer o gráfico
+incidencia_genero_melt <- melt(incidencia_genero, id.vars = "Data")
+names(incidencia_genero_melt) = c("Data", "Genero", "Incidencia")
+
+##Fazer gráfico de linhas com data no eixo do x, incidencia no eixo do y e género nas cores das linhas
+incidencia_genero_grafico <- ggplot(incidencia_genero_melt, aes(x = Data, y = Incidencia, color = Genero)) +
+  geom_line(size = 0.4) +
+  labs(x = "") +
+  theme(legend.title = element_blank(),
+        axis.text.x = element_text(size=8, color = "black"),
+        axis.text.y = element_text(size=12, color = "black")) +
+  scale_x_date(breaks = "months", date_labels = "%B")
+  
+#Tornar gráfico interativo
+ggplotly(incidencia_genero_grafico) %>% 
+  layout(yaxis = list(title = paste0(c(rep("&nbsp;", 20),
+                                       "Incidência",
+                                       rep("&nbsp;", 20),
+                                       rep("\n&nbsp;", 2)),
+                                     collapse = "")),
+         legend = list(x = 1, y = 0))
 ```
 
 #### Evolução da Taxa de Incidência por Género
@@ -759,32 +868,31 @@ ggplotly(casos_total_tempo_grafico) %>%
 Com a análise deste gráfico podemos verificar que não existem diferenças acentuadas entre os géneros, sendo o contacto entre os dois sexos frequente na nossa sociedade.
 
 ```{r}
-###Variáveis com a população total, feminina e masculina com base no INE
+#Variáveis com a população total, feminina e masculina com base no INE
 populacao_pt = 10295909
 mulheres_pt = 5435932
 homens_pt = 4859977
 
-###Cálculo da incidência criando uma tabbela para o total, outra para mulheres e outra para homens
+#Cálculo da incidência criando uma tabbela para o total, outra para mulheres e outra para homens
 incidencia_total <- as.data.frame(covid19pt$confirmados_novos/ (populacao_pt - covid19pt$confirmados - covid19pt$obitos))
 incidencia_homens <- as.data.frame((covid19pt$confirmados_m - lag(covid19pt$confirmados_m)) 
                                    / (homens_pt - covid19pt$confirmados_m - covid19pt$obitos_m)) 
 incidencia_mulheres <- as.data.frame((covid19pt$confirmados_f - lag(covid19pt$confirmados_f)) 
                                      / (mulheres_pt - covid19pt$confirmados_f - covid19pt$obitos_f))
 
-##Remover valores negativos devido a erro na base de dados original em que valor cumulativo do número casos homens 
-###e mulheres era 0 e não devia
+#Remover valores negativos devido a erro na base de dados original em que valor cumulativo do número casos homens e mulheres era 0 e não devia
 incidencia_homens[174:175,] <- NA
 incidencia_mulheres[174:175,] <- NA
 
-###Criar uma tabela com as 3 tabelas anteriores, adicionando uma coluna com a data e mudar os nomes das colunas
+#Criar uma tabela com as 3 tabelas anteriores, adicionando uma coluna com a data e mudar os nomes das colunas
 incidencia <- data.frame(covid19pt$data, incidencia_total*100, incidencia_mulheres*100, incidencia_homens*100)
 names(incidencia) <- c("Data", "Total", "Mulheres", "Homens")
 
-###Fazer melt para poder fazer gráfico de linhas e dar nome à coluna do género
+#Fazer melt para poder fazer gráfico de linhas e dar nome à coluna do género
 incidencia_melt <- melt(incidencia, id.vars = "Data")
 names(incidencia_melt) <- c("Data", "Genero", "Incidencia")
 
-###Fazer gráfico de linhas com data no eixo do x, a incidencia no eixo do y e o género em cada linha
+#Fazer gráfico de linhas com data no eixo do x, a incidencia no eixo do y e o género em cada linha
 incidencia_grafico <- ggplot(incidencia_melt, aes(x = Data, y = Incidencia, color = Genero)) +
   geom_point(size = 0.4) +
   geom_line(size = 0.4) +
@@ -796,7 +904,7 @@ incidencia_grafico <- ggplot(incidencia_melt, aes(x = Data, y = Incidencia, colo
         axis.text.y = element_text(size = 8)) +
   scale_x_date(breaks = "months", date_labels = "%B")
 
-###Tornar gráfico interativo
+#Tornar gráfico interativo
 ggplotly(incidencia_grafico) %>% 
   layout(margin = margin(l =10),
          yaxis = list(title = paste0(c(rep("&nbsp;", 4),
@@ -865,13 +973,6 @@ ggplot(casos_mortes_diarios_melt, aes(x = Data, y = value, color = variable)) +
 Neste gráfico de barras é facilmente visível que até aos 39 anos o número de mortes é quase inexistente. Começa a aumentar de forma mais significativa a partir dos 59 anos (o que confirma que se trata da população de risco), sendo a faixa etária dos 80+ anos aquela que tem, de longe, o maior número de mortes. É perceptível também que o género masculino tem maior número de mortes, ao longo de todas as faixas etárias execto na faixa etária dos 80+. Para estes dados serem estatisticamente fiáveis, era necessário ter-se tido em conta a proporção de pessoas confirmadas dos géneros masculino e feminino existentes em cada faixa etária da população. No entanto, sabemos que em portugal a esperança média de vida é superior nas mulheres do que nos homens, o que pressupõe que existem mais mulheres na faixa etária dos 80+ justificando, assim, um maior número de mortes do género feminino neste grupo etário.
 
 ```{r}
-#Selecionar as colunas de obitos feminino para todas as idades e juntá-las numa tabela e fazer o mesmo para o masculino
-femininos_mortes <- as.data.frame(covid19pt %>% 
-                                    dplyr::select(starts_with("obitos_") & (ends_with("9_f")| ends_with("plus_f"))))
-
-masculinos_mortes <- as.data.frame(covid19pt %>% 
-                                     dplyr::select((starts_with("obitos_") & (ends_with("9_m")| ends_with("plus_m")))))
-
 #Selecionar o valor mais recente de cada coluna de modo a ficar com o número de óbitos até ao momento  para cada faixa etária e para cada género
 mortes_femininos_idade <- as.data.frame(lapply(femininos_mortes, last))
 mortes_masculinos_idade <- as.data.frame(lapply(masculinos_mortes, last))
@@ -1053,8 +1154,34 @@ ggplot(mortalidade, aes(x = genero, y = mortalidade*100)) +
 
 #### Por Faixa Etária
 
-```{r}
+(VER SE ESTÁ BEM)
 
+```{r}
+#Calcular a taxa de mortalidade para cada faixa etária e adicionar coluna com faixas etárias
+mortalidade_idade <- cbind(mortes_femininos_idade_invertido[,1], ((mortes_femininos_idade_invertido[,2] 
+                                                                   + mortes_masculinos_idade_invertido[,2])*100/ populacao_idades_pt))
+names(mortalidade_idade) = c("Faixa_Etaria", "Taxa_Mortalidade")
+
+#Fazer o gráfico com faixa etária no eixo do x e taxa de mortalidade no eixo do y
+mortalidade_idade_grafico <- ggplot(mortalidade_idade, aes(x = Faixa_Etaria, y = Taxa_Mortalidade)) +
+  geom_col(fill = "salmon1") +
+  scale_y_continuous(expand = c(0, 0)) +
+  coord_cartesian( ylim = c(0, max(mortalidade_idade$Taxa_Mortalidade + 0.01))) +
+  theme_classic() +
+  labs(x = "") +
+  theme(axis.title.y = element_text(margin = margin(r = 20, l = 20), 
+                                    size = 12),
+        axis.text.x = element_text(size=12, color = "black"),
+        axis.text.y = element_text(size=12, color = "black"))
+
+
+#Tornar gráfico interativo
+ggplotly(mortalidade_idade_grafico) %>% 
+  layout(yaxis = list(title = paste0(c(rep("&nbsp;", 20),
+                                     "Taxa de Mortalidade (%)",
+                                     rep("&nbsp;", 20),
+                                     rep("\n&nbsp;", 2)),
+                                   collapse = "")))
 ```
 
 #### Por ARS
