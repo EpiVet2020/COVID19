@@ -1073,7 +1073,7 @@ Neste tópico vamos abordar a mortalidade em valor absoluto (número de mortes),
 #### Relação com a Evolução da Incidência
 <br>
 
-A evolução do número de mortes diárias tende a acompanhar a evolução do número de casos diários. Inicialmente, como os casos diagnosticados eram mais graves, os pacientes morriam mais cedo e por essa razão o desfasamento entre os casos e as mortes não era tão acentuado. Com a evolução da pandemia, começou a ser feito um diagnosticados mais precoce, o que aumentou o intervalo entre o diagnóstico e a morte. 
+A evolução do número de mortes diárias tende a acompanhar a evolução do número de casos diários. Inicialmente, como os casos diagnosticados eram mais graves, os pacientes morriam mais cedo e por essa razão o desfasamento entre os casos e as mortes não era tão acentuado. Com a evolução da pandemia, começou a ser feito um diagnóstico mais precoce, o que aumentou o intervalo entre o diagnóstico e a morte. 
 
 De forma geral, o número de mortes diárias tem vindo a decrescer. À data da análise, podemos verificar que mesmo perante um grande aumento no número de casos diários, o número de mortes não tem acompanhado este aumento. Isto pode dever-se a um maior conhecimento sobre a doença, à maior incidência nas faixas etárias mais jovens e, talvez, uma menor virulência do vírus.
 
@@ -1173,7 +1173,7 @@ ggplotly(mortes_fem_masc_grafico) %>%
 
 <br>
 
-Neste gráfico de barras e no mapa vemos que a ARS com maior número de mortes é a Norte, seguida de Lisboa e Vale do Tejo. É importante realçar que este número é absoluto logo não tem em consideração a proporção de infetados de cada ARS.
+Neste gráfico de barras e no mapa vemos que a ARS com maior número de mortes é a Norte, seguida de Lisboa e Vale do Tejo. É importante realçar que este número é absoluto, logo, não tem em consideração a proporção de infetados de cada ARS.
 
 ```{r, warning=FALSE}
 #Criar tabela com uma coluna para as Regiãoes e outra para o número mais recente total de óbitos e dar nomes
@@ -1613,7 +1613,7 @@ Nas ARSs do Algarve e do Alentejo, era de esperar que as taxas de letalidade fos
 
 A taxa de letalidade na ARS de Lisboa e Vale do Tejo parece ser baixa dada a prevalência que existe nesta ARS. Isto demonstra que possui um serviço de saúde eficaz com uma boa resposta médica.
 
-Na Madeira a taxa de letalidade é zero uma vez que não se verificaram óbitos nesta região. Este valor pode dever-se, por um lado à qualidade do serviço médico prestado ou, por outro lado, a uma menor incidência nas faixas etárias com maior risco de morte.
+Na Madeira a taxa de letalidade é zero, uma vez que não se verificaram óbitos nesta região. Este valor pode dever-se, por um lado à qualidade do serviço médico prestado ou, por outro lado, a uma menor incidência nas faixas etárias com maior risco de morte.
 
 ```{r, warning=FALSE}
 #Fazer uma tabela com uma coluna com a Região e outra com a letalidade para cada Região e dar nomes adequados
@@ -1707,7 +1707,7 @@ No caso dos Açores ocorreu um aumento abrupto da taxa de letalidade, em que no 
 
 A ARS do Alentejo apresenta um comportamento atípico. Ocorre um pico no dia 03/04/2020 que pode representar a morte de pessoas infetadas no início da pandemia, no entanto é invulgar que tenham todas ocorrido no mesmo dia. De seguida a taxa de letalidade regressa a 0%, o que demonstra que houve um lapso no registo dos óbitos. Entre maio e junho a taxa de letalidade manteve-se em *platô*, sendo isso também incomum. De seguida, apresentou um aumento abrupto que pode ser explicado pelo aumento da incidência, possivelmente em faixas etárias mais velhas. Desde julho, tem demonstrado um comportamento semelhante às outras ARSs, com uma descida da taxa de letalidade.
 
-Na Madeira a taxa de letalidade é zero uma vez que não se verificaram óbitos nesta região.
+Na Madeira a taxa de letalidade é zero, uma vez que não se verificaram óbitos nesta região.
 
 ```{r, warning=FALSE}
 #Criar tabela com uma coluna para data e outras colunas uma para cada região tendo lá os valores da letalidade diária e dar nomes às colunas
@@ -1792,7 +1792,7 @@ ggplotly(internados_grafico) %>%
 
 <br>
 
-No início da pandemia apenas os casos graves procuravam ajuda médica, e por isso eram os únicos a serem diagnosticados, o que justifica a taxa de internamento de 100%. De seguida houve uma descida abrupta, explicada pelo aumento do diagnóstico de casos menos graves. No final de março houve um ligeiro aumento na taxa de internados. Posteriormente houve uma diminuição desta taxa, possivelmente devido a um maior conhecimento desta condição médica assim como uma maior incidência nas faixas etárias mais jovens. A partir de setembro a taxa apresenta um comportamento ligeiramente crescente, que pode dever-se a um novo aumento do número de casos nas faixas etárias mais velhas (gráfico da Evolução da Incidência por Faixa Etária).
+No início da pandemia apenas os casos graves procuravam ajuda médica e, por isso, eram os únicos a serem diagnosticados, o que justifica a taxa de internamento de 100%. De seguida houve uma descida abrupta, explicada pelo aumento do diagnóstico de casos menos graves. No final de março houve um ligeiro aumento na taxa de internados. Posteriormente houve uma diminuição desta taxa, possivelmente devido a um maior conhecimento desta condição médica assim como uma maior incidência nas faixas etárias mais jovens. A partir de setembro a taxa apresenta um comportamento ligeiramente crescente, que pode dever-se a um novo aumento do número de casos nas faixas etárias mais velhas (gráfico da Evolução da Incidência por Faixa Etária).
 
 ```{r, warning=FALSE}
 #Fazer melt para ter tabela com coluna da data, coluna do tipo de internamento e coluna com percentagem de internados que são os internados a dividir pelos confirmados e dar nomes às colunas
@@ -1859,7 +1859,7 @@ ggplotly(racio_internados_grafico)
 
 <br>
 
-Nos meses de março e abril, a taxa de recuperados era bastante baixa. Isto pode ser justificado pelo facto de apenas os casos graves terem sido diagnosticados nesta fase. A partir de abril, a taxa de recuperados sofreu um crescimento devido ao aumento do número de diagnósticos de casos menos graves. No dia 24/05/2020, a taxa de recuperados teve uma subida abrupta, que pode dever-se a um lapso no registo dos recuperados. No dia 25/08/2020 ocorreu o pico. Desde então, a taxa tem vindo a diminuir de forma gradual, o que pode ser devido ao grande aumento do número de casos verificados em setembro, os quais ainda não tiveram tempo para recuperar.
+Nos meses de março e abril a taxa de recuperados era bastante baixa. Isto pode ser justificado pelo facto de apenas os casos graves terem sido diagnosticados nesta fase. A partir de abril, a taxa de recuperados sofreu um crescimento devido ao aumento do número de diagnósticos de casos menos graves. No dia 24/05/2020, a taxa de recuperados teve uma subida abrupta, que pode dever-se a um lapso no registo dos recuperados. No dia 25/08/2020 ocorreu o pico. Desde então, a taxa tem vindo a diminuir de forma gradual, o que pode ser devido ao grande aumento do número de casos verificados em setembro, os quais ainda não tiveram tempo para recuperar.
 
 ```{r, warning=FALSE}
 #Criar tabela com coluna para data e outra coluna para a percentagem de recuperados em cada dia e dar nomes às colunas
