@@ -218,7 +218,8 @@ names(testes_media_rolante) = c("Data", "Testes")
 ##Fazer o gráfico
 testes_media_rolante_grafico <- ggplot(testes_media_rolante, aes(x = Data, y = Testes)) +
   geom_line(size = 0.4, color = "cadetblue") +
-  labs(x = "",
+  labs(title = "Média Rolante",
+       x = "",
        y = "Número de Testes") +
   scale_x_date(breaks = "months", date_labels = "%B")
 
@@ -809,7 +810,8 @@ names(casos_total_tempo_media_rolante_melt) = c("Data", "Faixa_Etaria", "Casos")
 casos_total_tempo_media_rolante_grafico_linhas <- ggplot(casos_total_tempo_media_rolante_melt, 
                                                          aes(x = Data, y = Casos, color = Faixa_Etaria)) +
   geom_line() +
-  labs(x ="", 
+  labs(title = "Média Rolante",
+       x ="", 
        y = "Incidência") +
   theme(legend.title = element_blank(),
         axis.title.x = element_text(size = 12),
@@ -1828,9 +1830,14 @@ ggplotly(internados_confirmados_grafico) %>%
 
 <br>
 
+Neste gráfico podemos ver que no início da pandemia, uma vez que apenas os casos mais graves eram diagnosticados, cerca de 30% dos internados encontravam-se na unidade de cuidados intensivos. 
+Desde o início de abril este rácio tem vindo a diminuir. Teve um aumento ligeiro no dia 16 de maio, provavelmente resultante dos 52 surtos ativos em lares de idosos existentes de 1 a 7 de maio. No início do verão houve um novo aumento provavelmente também resultante dos surtos ativos em estruturas residenciais para idosos.
+
+Posteriormente o rácio foi diminuindo de forma considerável até dia 10 de agosto, onde atingiu o seu mínimo com cerca de 7%. De seguida, o rácio tem vindo novamente a aumentar devido a um aumento da incidência na população mais velha (gráfico Evolução da Incidência por Faixa Etária).
+
 ```{r}
 #Fazer o rácio
-racio_internados <- cbind(data$data, as.data.frame((data$internados_uci/data$internados)*100))
+racio_internados <- cbind(covid19pt$data, as.data.frame((covid19pt$internados_uci/covid19pt$internados)*100))
 names(racio_internados) = c("Data", "Racio")
 
 #Fazer o gráfico
