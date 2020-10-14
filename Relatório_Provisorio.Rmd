@@ -210,15 +210,15 @@ testes_diarios_grafico_interativo <- ggplotly(testes_diarios_grafico) %>%
                                        rep("\n&nbsp;", 2)),
                                      collapse = "")))
 
-#Testagem com média rolante
+#Testagem com média rolante 7 dias
 ##Fazer a média rolante
-testes_media_rolante <- cbind(covid19pt_testes[,1], rollmean(covid19pt_testes[,3], k = 7, fill = NA))
+testes_media_rolante <- cbind(covid19pt_testes[7:nrow(covid19pt_testes),1], rollmean(covid19pt_testes[,3], k = 7))
 names(testes_media_rolante) = c("Data", "Testes")
 
 ##Fazer o gráfico
 testes_media_rolante_grafico <- ggplot(testes_media_rolante, aes(x = Data, y = Testes)) +
   geom_line(size = 0.4, color = "cadetblue") +
-  labs(title = "Média Rolante",
+  labs(title = "Média Rolante 7 dias",
        x = "",
        y = "Número de Testes") +
   scale_x_date(breaks = "months", date_labels = "%B")
@@ -448,9 +448,10 @@ incidencia_regioes_tempo_grafico_interativo <- ggplotly(incidencia_regioes_tempo
                                        rep("\n&nbsp;", 2)),
                                      collapse = "")))
 
-#Incidência com média rolante
+#Incidência com média rolante 7 dias
 ##Fazer a média rolante
-incidencia_regioes_tempo_media_rolante <- cbind(incidencia_regioes_tempo[,1], as.data.frame(rollmean(incidencia_regioes_tempo[,2:8], k = 7, fill = NA)))
+incidencia_regioes_tempo_media_rolante <- cbind(incidencia_regioes_tempo[7:nrow(incidencia_regioes_tempo),1],
+                                                as.data.frame(rollmean(incidencia_regioes_tempo[,2:8], k = 7)))
 names(incidencia_regioes_tempo_media_rolante)[1] = "Data"
 
 incidencia_regioes_tempo_media_rolante_melt <- melt(incidencia_regioes_tempo_media_rolante, id.vars = "Data")
@@ -463,7 +464,7 @@ incidencia_regioes_tempo_media_rolante_melt_grafico <- ggplot(incidencia_regioes
   theme(legend.title = element_blank(),
         axis.text.y = element_text(size = 8),
         axis.text.x = element_text(size = 7)) +
-  labs(title = "Média Rolante",
+  labs(title = "Média Rolante 7 dias",
        x = "",
        y = "Incidência") +
   scale_x_date(breaks = "months", date_labels = "%B")
@@ -503,22 +504,8 @@ labels_7 <- sprintf(
 ) %>% lapply(htmltools::HTML)
 
 
-browsable(
-  tagList(list(
-    tags$div(
-      style = 'width:50%;display:block;float:left;',
-      incidencia_regioes_tempo_grafico_interativo
-    ),
-    tags$div(
-      style = 'width:50%;display:block;float:left;',
-      incidencia_regioes_tempo_media_rolante_melt_grafico_interativo
-    )
-  ))
-)
-
-
 ##Fazer o mapa
-leaflet(mapa_pt) %>% 
+incidencia_regioes_mapa <- leaflet(mapa_pt) %>% 
   addTiles(group = "Normal") %>% 
   addProviderTiles(providers$CartoDB.Positron, group = "Claro") %>% 
   addProviderTiles(providers$CartoDB.DarkMatterNoLabels, group = "Escuro") %>% 
@@ -546,6 +533,64 @@ leaflet(mapa_pt) %>%
                                 direction = "auto")) %>% 
   addLegend(pal = pal_7, values = incidencia_regioes_recente[,2], opacity = 0.7, title = "Incidência Atual",
             position = "bottomright")
+
+#Incidência com média rolante 14 dias
+##Fazer a média rolante
+incidencia_regioes_tempo_media_rolante_14 <- cbind(incidencia_regioes_tempo[14:nrow(incidencia_regioes_tempo),1],
+                                                as.data.frame(rollmean(incidencia_regioes_tempo[,2:8], k = 14)))
+names(incidencia_regioes_tempo_media_rolante_14)[1] = "Data"
+
+incidencia_regioes_tempo_media_rolante_14_melt <- melt(incidencia_regioes_tempo_media_rolante_14, id.vars = "Data")
+names(incidencia_regioes_tempo_media_rolante_14_melt) = c("Data", "Regiao", "Incidencia")
+
+##Fazer gráfico
+incidencia_regioes_tempo_media_rolante_14_melt_grafico <- ggplot(incidencia_regioes_tempo_media_rolante_14_melt, 
+                                                              aes(x = Data, y = Incidencia, color = Regiao)) +
+  geom_line() +
+  theme(legend.title = element_blank(),
+        axis.text.y = element_text(size = 8),
+        axis.text.x = element_text(size = 7)) +
+  labs(title = "Média Rolante 14 dias",
+       x = "",
+       y = "Incidência") +
+  scale_x_date(breaks = "months", date_labels = "%B")
+
+##Tornar gráfico interativo
+incidencia_regioes_tempo_media_rolante_14_melt_grafico_interativo <- ggplotly(incidencia_regioes_tempo_media_rolante_14_melt_grafico) %>% 
+  layout(yaxis = list(title = paste0(c(rep("&nbsp;", 20),
+                                       "Incidência",
+                                       rep("&nbsp;", 20),
+                                       rep("\n&nbsp;", 2)),
+                                     collapse = "")),
+         legend = list(x = 1, y = 0))
+
+
+browsable(
+  tagList(list(
+    tags$div(
+      style = 'width:50%;display:block;float:left;',
+      incidencia_regioes_tempo_grafico_interativo
+    ),
+    tags$div(
+      style = 'width:50%;display:block;float:left;',
+      incidencia_regioes_tempo_media_rolante_melt_grafico_interativo
+    )
+  ))
+)
+
+
+browsable(
+  tagList(list(
+    tags$div(
+      style = 'width:50%;display:block;float:left;',
+      incidencia_regioes_tempo_media_rolante_14_melt_grafico_interativo
+    ),
+    tags$div(
+      style = 'width:50%;display:block;float:left;',
+      incidencia_regioes_mapa
+    )
+  ))
+)
 
 
 ```
@@ -798,8 +843,8 @@ casos_total_tempo_grafico_interativo <- ggplotly(casos_total_tempo_grafico) %>%
 
 #Número de casos com média rolante
 ##Calcular a média rolante
-casos_total_tempo_media_rolante <- cbind(casos_total_tempo[,1], as.data.frame(rollmean(casos_total_tempo[,2:10],
-                                                                                       k = 7, fill = NA)))
+casos_total_tempo_media_rolante <- cbind(casos_total_tempo[7:nrow(casos_total_tempo),1], 
+                                         as.data.frame(rollmean(casos_total_tempo[,2:10],k = 7)))
 names(casos_total_tempo_media_rolante)[1] = "Data"
 
 ##Fazer melt
