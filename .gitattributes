@@ -5,4 +5,5 @@ Relatório_Provisorio.psd filter=lfs diff=lfs merge=lfs -text
 *.Rmd filter=lfs diff=lfs merge=lfs -text
 *.Html filter=lfs diff=lfs merge=lfs -text
 *.nb.html filter=lfs diff=lfs merge=lfs -text
+.html filter=lfs diff=lfs merge=lfs -text
 Relatório_Provisorio.html filter=lfs diff=lfs merge=lfs -text
