@@ -973,7 +973,7 @@ prevalencia_idade_grafico <- ggplot(prevalencia_idade, aes(x = Faixa_Etaria, y =
 #Tornar gráfico interativo
 prevalencia_idade_grafico_interativo <- ggplotly(prevalencia_idade_grafico) %>% 
   layout(yaxis = list(title = paste0(c(rep("&nbsp;", 20),
-                                       "Prevalência (%)",
+                                       "Taxa de Incidência Cumulativa (%)",
                                        rep("&nbsp;", 20),
                                        rep("\n&nbsp;", 2)),
                                      collapse = "")))
