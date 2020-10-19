@@ -200,7 +200,7 @@ testes_diarios_grafico <- ggplot(testes_diarios, aes(x = Data, y = Testes)) +
   geom_line(size = 0.4, color = "cadetblue") +
   labs(x = "") +
   theme(axis.title.x = element_text(size = 12)) +
-  scale_x_date(breaks = "months", date_labels = "%B")
+  scale_x_date(breaks = "months", date_labels = "%b")
 
 #Fazer com que gráfico seja interativo
 testes_diarios_grafico_interativo <- ggplotly(testes_diarios_grafico) %>% 
@@ -210,18 +210,18 @@ testes_diarios_grafico_interativo <- ggplotly(testes_diarios_grafico) %>%
                                        rep("\n&nbsp;", 2)),
                                      collapse = "")))
 
-#Testagem com média rolante
+#Testagem com média rolante 7 dias
 ##Fazer a média rolante
-testes_media_rolante <- cbind(covid19pt_testes[,1], rollmean(covid19pt_testes[,3], k = 7, fill = NA))
+testes_media_rolante <- cbind(covid19pt_testes[7:nrow(covid19pt_testes),1], rollmean(covid19pt_testes[,3], k = 7))
 names(testes_media_rolante) = c("Data", "Testes")
 
 ##Fazer o gráfico
 testes_media_rolante_grafico <- ggplot(testes_media_rolante, aes(x = Data, y = Testes)) +
   geom_line(size = 0.4, color = "cadetblue") +
-  labs(title = "Média Rolante",
+  labs(title = "Média Rolante (7 dias)",
        x = "",
        y = "Número de Testes") +
-  scale_x_date(breaks = "months", date_labels = "%B")
+  scale_x_date(breaks = "months", date_labels = "%b")
 
 ##Fazer com que gráfico seja interativo
 testes_media_rolante_grafico_interativo <- ggplotly(testes_media_rolante_grafico) %>% 
@@ -269,7 +269,7 @@ testes_positivos_grafico <- ggplot(testes_positivos, aes(x = Data, y = Percentag
   geom_point(color = "lightseagreen") +
   labs(x = "",
        y = "Frequência (%)") +
-  scale_x_date(breaks = "months", date_labels = "%B")
+  scale_x_date(breaks = "months", date_labels = "%b")
 
 ###Fazer com que gráfico seja interativo
 ggplotly(testes_positivos_grafico) %>% 
@@ -313,7 +313,7 @@ casos_diarios_grafico <- ggplot(casos_diarios, aes(x = Data, y = Casos))+
   geom_line(size = 0.4, color = "coral3")+
   labs(x = "") +
   theme(axis.title.x = element_text(size = 12)) +
-  scale_x_date(breaks = "months", date_labels = "%B")
+  scale_x_date(breaks = "months", date_labels = "%b")
 
 #Fazer com que gráfico seja interativo
 ggplotly(casos_diarios_grafico) %>% 
@@ -355,7 +355,7 @@ casos_regioes_grafico_interativo <- ggplotly(casos_regioes_grafico) %>%
 
 #mapa
 ##Definir intervalos que queremos na legenda
-bins =  c(0, 300, 1000, 2000, 5000, 7000, 35000, Inf)
+bins =  c(0, 400, 3000, 10000, 20000, 40000, 60000, Inf)
 ##Colocar as Regiãoes da tabela pela mesma ordem que a dos poligonos
 casos_regioes_ordem <- casos_regioes[c(4, 5, 6, 2, 7, 1, 3),]
 
@@ -438,7 +438,7 @@ incidencia_regioes_tempo_grafico <- ggplot(incidencia_regioes_tempo_melt, aes(x 
   theme(axis.text.y = element_text(size = 8),
         axis.text.x = element_text(size = 7),
         legend.position = "none") +
-  scale_x_date(breaks = "months", date_labels = "%B")
+  scale_x_date(breaks = "months", date_labels = "%b")
 
 #Tornar interativo
 incidencia_regioes_tempo_grafico_interativo <- ggplotly(incidencia_regioes_tempo_grafico) %>% 
@@ -448,9 +448,10 @@ incidencia_regioes_tempo_grafico_interativo <- ggplotly(incidencia_regioes_tempo
                                        rep("\n&nbsp;", 2)),
                                      collapse = "")))
 
-#Incidência com média rolante
+#Incidência com média rolante 7 dias
 ##Fazer a média rolante
-incidencia_regioes_tempo_media_rolante <- cbind(incidencia_regioes_tempo[,1], as.data.frame(rollmean(incidencia_regioes_tempo[,2:8], k = 7, fill = NA)))
+incidencia_regioes_tempo_media_rolante <- cbind(incidencia_regioes_tempo[7:nrow(incidencia_regioes_tempo),1],
+                                                as.data.frame(rollmean(incidencia_regioes_tempo[,2:8], k = 7)))
 names(incidencia_regioes_tempo_media_rolante)[1] = "Data"
 
 incidencia_regioes_tempo_media_rolante_melt <- melt(incidencia_regioes_tempo_media_rolante, id.vars = "Data")
@@ -463,10 +464,10 @@ incidencia_regioes_tempo_media_rolante_melt_grafico <- ggplot(incidencia_regioes
   theme(legend.title = element_blank(),
         axis.text.y = element_text(size = 8),
         axis.text.x = element_text(size = 7)) +
-  labs(title = "Média Rolante",
+  labs(title = "Média Rolante (7 dias)",
        x = "",
        y = "Incidência") +
-  scale_x_date(breaks = "months", date_labels = "%B")
+  scale_x_date(breaks = "months", date_labels = "%b")
 
 ##Tornar gráfico interativo
 incidencia_regioes_tempo_media_rolante_melt_grafico_interativo <- ggplotly(incidencia_regioes_tempo_media_rolante_melt_grafico) %>% 
@@ -488,7 +489,7 @@ incidencia_regioes_recente[,1] = c("Norte", "Centro", "Lisboa e Vale do Tejo", "
                                    "Algarve", "Açores", "Madeira")
 
 ##Definir intervalos para legenda
-bins_7 =  c(0, 25, 50, 100, 200, 300, 400, Inf)
+bins_7 =  c(0, 50, 100, 300, 500, 800, 1000, Inf)
 
 ##Definir palete de cores para mapa
 pal_7 <- colorBin("YlOrRd", domain = incidencia_regioes_recente[,2], bins = bins_7)
@@ -503,22 +504,8 @@ labels_7 <- sprintf(
 ) %>% lapply(htmltools::HTML)
 
 
-browsable(
-  tagList(list(
-    tags$div(
-      style = 'width:50%;display:block;float:left;',
-      incidencia_regioes_tempo_grafico_interativo
-    ),
-    tags$div(
-      style = 'width:50%;display:block;float:left;',
-      incidencia_regioes_tempo_media_rolante_melt_grafico_interativo
-    )
-  ))
-)
-
-
 ##Fazer o mapa
-leaflet(mapa_pt) %>% 
+incidencia_regioes_mapa <- leaflet(mapa_pt) %>% 
   addTiles(group = "Normal") %>% 
   addProviderTiles(providers$CartoDB.Positron, group = "Claro") %>% 
   addProviderTiles(providers$CartoDB.DarkMatterNoLabels, group = "Escuro") %>% 
@@ -546,6 +533,64 @@ leaflet(mapa_pt) %>%
                                 direction = "auto")) %>% 
   addLegend(pal = pal_7, values = incidencia_regioes_recente[,2], opacity = 0.7, title = "Incidência Atual",
             position = "bottomright")
+
+#Incidência com média rolante 14 dias
+##Fazer a média rolante
+incidencia_regioes_tempo_media_rolante_14 <- cbind(incidencia_regioes_tempo[14:nrow(incidencia_regioes_tempo),1],
+                                                as.data.frame(rollmean(incidencia_regioes_tempo[,2:8], k = 14)))
+names(incidencia_regioes_tempo_media_rolante_14)[1] = "Data"
+
+incidencia_regioes_tempo_media_rolante_14_melt <- melt(incidencia_regioes_tempo_media_rolante_14, id.vars = "Data")
+names(incidencia_regioes_tempo_media_rolante_14_melt) = c("Data", "Regiao", "Incidencia")
+
+##Fazer gráfico
+incidencia_regioes_tempo_media_rolante_14_melt_grafico <- ggplot(incidencia_regioes_tempo_media_rolante_14_melt, 
+                                                              aes(x = Data, y = Incidencia, color = Regiao)) +
+  geom_line() +
+  theme(legend.title = element_blank(),
+        axis.text.y = element_text(size = 8),
+        axis.text.x = element_text(size = 7)) +
+  labs(title = "Média Rolante (14 dias)",
+       x = "",
+       y = "Incidência") +
+  scale_x_date(breaks = "months", date_labels = "%b")
+
+##Tornar gráfico interativo
+incidencia_regioes_tempo_media_rolante_14_melt_grafico_interativo <- ggplotly(incidencia_regioes_tempo_media_rolante_14_melt_grafico) %>% 
+  layout(yaxis = list(title = paste0(c(rep("&nbsp;", 20),
+                                       "Incidência",
+                                       rep("&nbsp;", 20),
+                                       rep("\n&nbsp;", 2)),
+                                     collapse = "")),
+         legend = list(x = 1, y = 0))
+
+
+browsable(
+  tagList(list(
+    tags$div(
+      style = 'width:50%;display:block;float:left;',
+      incidencia_regioes_tempo_grafico_interativo
+    ),
+    tags$div(
+      style = 'width:50%;display:block;float:left;',
+      incidencia_regioes_tempo_media_rolante_melt_grafico_interativo
+    )
+  ))
+)
+
+
+browsable(
+  tagList(list(
+    tags$div(
+      style = 'width:50%;display:block;float:left;',
+      incidencia_regioes_tempo_media_rolante_14_melt_grafico_interativo
+    ),
+    tags$div(
+      style = 'width:50%;display:block;float:left;',
+      incidencia_regioes_mapa
+    )
+  ))
+)
 
 
 ```
@@ -607,7 +652,7 @@ ggplot(incidencia_regioes_melt, aes(x = data, y = valor*100, color = regiao)) +
         axis.text.y = element_text(size = 5),
         strip.text.y = element_text(size = 8, angle = 0)) +
   guides(color = FALSE) +
-  scale_x_date(breaks = "months", date_labels = "%B")
+  scale_x_date(breaks = "months", date_labels = "%b")
 ```
 
 #### Taxa de Incidência Cumulativa
@@ -644,7 +689,7 @@ prevalencia_regiao_grafico_interativo <- ggplotly(prevalencia_regiao_grafico)%>%
 prevalencia_regiao_ordem <- prevalencia_regiao[c(4,5,6,2,7,1,3),] # colocar as regioes pela ordem do mapa
 prevalencia_regiao_ordem[,1] <- c("Alentejo", "Algarve", "Açores", "Centro", "Madeira", "Norte", "Lisboa e Vale do Tejo" )
 
-pal_prevalencia_regiao <- colorBin("viridis", domain = prevalencia_regiao_ordem$Prevalencia, bins = c(0, 0.1, 0.2, 0.3, 0.5, 0.7, 0.8, Inf))
+pal_prevalencia_regiao <- colorBin("viridis", domain = prevalencia_regiao_ordem$Prevalencia, bins = c(0.1, 0.3, 0.5, 0.8, 1, 1.3, 1.5, Inf))
 
 labels_prevalencia_regiao <- paste( 
   "<strong>", prevalencia_regiao_ordem[,1],"</strong><br/>", 
@@ -667,7 +712,7 @@ prevalencia_regiao_mapa <- leaflet(mapa_pt) %>%
             pal = pal_prevalencia_regiao, 
             values = prevalencia_regiao_ordem$Prevalencia , 
             opacity = 0.5, 
-            title = "Prevalência de confirmados por ARS") %>% 
+            title = "Taxa de Incidência Cumulativa por ARS") %>% 
   addTiles(group ="Original") %>%
   addProviderTiles(providers$CartoDB.Positron, group = "Positron") %>%
   addProviderTiles(providers$Esri.WorldImagery, group = "Satélite") %>%
@@ -784,13 +829,13 @@ names(casos_total_tempo_melt) = c("Data", "Faixa_Etaria", "Casos")
 casos_total_tempo_grafico <- ggplot(casos_total_tempo_melt, aes(x = Data, y = Casos, fill = Faixa_Etaria)) +
   geom_area(alpha=0.6 , size=.5) +
   labs(x ="", 
-       y = "Casos") +
+       y = "Incidência") +
   theme(legend.title = element_blank(),
         axis.title.x = element_text(size = 12),
         axis.title.y = element_text(size = 12),
         axis.text.y = element_text(size = 5),
         strip.text.y = element_text(size = 3, angle = 0)) +
-  scale_x_date(breaks = "months", date_labels = "%B")
+  scale_x_date(breaks = "months", date_labels = "%b")
 
 #Tornar gráfico interativo
 casos_total_tempo_grafico_interativo <- ggplotly(casos_total_tempo_grafico) %>% 
@@ -798,8 +843,8 @@ casos_total_tempo_grafico_interativo <- ggplotly(casos_total_tempo_grafico) %>%
 
 #Número de casos com média rolante
 ##Calcular a média rolante
-casos_total_tempo_media_rolante <- cbind(casos_total_tempo[,1], as.data.frame(rollmean(casos_total_tempo[,2:10],
-                                                                                       k = 7, fill = NA)))
+casos_total_tempo_media_rolante <- cbind(casos_total_tempo[7:nrow(casos_total_tempo),1], 
+                                         as.data.frame(rollmean(casos_total_tempo[,2:10],k = 7)))
 names(casos_total_tempo_media_rolante)[1] = "Data"
 
 ##Fazer melt
@@ -810,7 +855,7 @@ names(casos_total_tempo_media_rolante_melt) = c("Data", "Faixa_Etaria", "Casos")
 casos_total_tempo_media_rolante_grafico_linhas <- ggplot(casos_total_tempo_media_rolante_melt, 
                                                          aes(x = Data, y = Casos, color = Faixa_Etaria)) +
   geom_line() +
-  labs(title = "Média Rolante",
+  labs(title = "Média Rolante (7 dias)",
        x ="", 
        y = "Incidência") +
   theme(legend.title = element_blank(),
@@ -818,7 +863,7 @@ casos_total_tempo_media_rolante_grafico_linhas <- ggplot(casos_total_tempo_media
         axis.title.y = element_text(size = 12),
         axis.text.y = element_text(size = 5),
         strip.text.y = element_text(size = 3, angle = 0)) +
-  scale_x_date(breaks = "months", date_labels = "%B")
+  scale_x_date(breaks = "months", date_labels = "%b")
 
 ##Tornar gráfico interativo
 casos_total_tempo_media_rolante_grafico_linhas_interativo <- ggplotly(casos_total_tempo_media_rolante_grafico_linhas)
@@ -890,7 +935,7 @@ ggplot(taxa_incidencia_idade_melt, aes(x = Data, y = Taxa_Incidencia, color = Fa
                                     size = 12),
         axis.text.y = element_text(size = 8),
         strip.text.y = element_text(size = 8, angle = 0)) +
-  scale_x_date(breaks = "months", date_labels = "%B")
+  scale_x_date(breaks = "months", date_labels = "%b")
 ```
 
 #### Taxa de Incidência Cumulativa por Faixa Etária
@@ -918,10 +963,11 @@ names(prevalencia_idade)[2] = "Prevalencia"
 
 #Fazer gráfico com faixa etária no eixo do x e prevalência no eixo do y
 prevalencia_idade_grafico <- ggplot(prevalencia_idade, aes(x = Faixa_Etaria, y = Prevalencia)) +
-  geom_col(fill = "coral2", width = 0.5) +
+  geom_col(fill = "coral2", width = 0.5, aes(text = paste('Faixa etária: ', Faixa_Etaria,
+                                           '<br>Taxa de Incidência Cumulativa (%):', Prevalencia))) +
   scale_y_continuous(expand = c(0, 0)) +
   theme_classic() +
-  labs(x = "") +
+  labs(x = "", y="Taxa de Incidência Cumulativa (%)") +
   theme(axis.text.x = element_text(size=8, color = "black"),
         axis.text.y = element_text(size=12, color = "black"))
 
@@ -951,7 +997,7 @@ prevalencia_tempo_idade_grafico <- ggplot(prevalencia_tempo_idade_melt, aes(x = 
         axis.title.x = element_text(size = 12),
         legend.text = element_text(size = 8),
         axis.text.x = element_text(size = 6)) +
-  scale_x_date(breaks = "months", date_labels = "%B")
+  scale_x_date(breaks = "months", date_labels = "%b")
 
 ##Tornar o grafico interativo
 prevalencia_tempo_idade_grafico_interativo <- ggplotly(prevalencia_tempo_idade_grafico) %>% 
@@ -1003,7 +1049,7 @@ incidencia_genero_grafico <- ggplot(incidencia_genero_melt, aes(x = Data, y = In
   theme(legend.title = element_blank(),
         axis.text.x = element_text(size=8, color = "black"),
         axis.text.y = element_text(size=12, color = "black")) +
-  scale_x_date(breaks = "months", date_labels = "%B")
+  scale_x_date(breaks = "months", date_labels = "%b")
   
 #Tornar gráfico interativo
 ggplotly(incidencia_genero_grafico) %>% 
@@ -1057,7 +1103,7 @@ ggplot(incidencia_melt, aes(x = Data, y = Incidencia, color = Genero)) +
   theme(axis.title.y = element_text(size = 12),
         axis.text.y = element_text(size = 8),
         strip.text.y = element_text(size = 8, angle = 0)) +
-  scale_x_date(breaks = "months", date_labels = "%B")
+  scale_x_date(breaks = "months", date_labels = "%b")
       
 ```
 
@@ -1103,7 +1149,7 @@ ggplot(casos_mortes_diarios_melt, aes(x = Data, y = value, color = variable)) +
                                     size = 12),
         axis.title.y = element_text(margin = margin(r = 20, l = 20), 
                                     size = 12)) +
-  scale_x_date(breaks = "months", date_labels = "%B")
+  scale_x_date(breaks = "months", date_labels = "%b")
 ```
 
 
@@ -1363,7 +1409,7 @@ mortalidade_regioes_grafico_interativo <- ggplotly(mortalidade_regioes_grafico) 
                                    collapse = "")))
 #mapa
 ##Definir intervalos da legenda
-bins_4 =  c(0, 0.002, 0.004, 0.006, 0.008, 0.01, 0.02, Inf)
+bins_4 =  c(0, 0.006, 0.001, 0.015, 0.02, 0.025, 0.03, Inf)
 
 ##Ordenar a tabela feita anteriormente para ficar com a mesma ordem que os poligonos do mapa
 mortalidade_regioes_ordem <- mortalidade_regioes[c(4, 5, 6, 2, 7, 1, 3),]
@@ -1491,7 +1537,7 @@ letalidade_tempo_grafico <- ggplot(letalidade_tempo_melt, aes(x = Data, y = Leta
   theme(legend.title = element_blank(),
         axis.title.x = element_text(size = 12),
         axis.title.y = element_text(size = 12))+
-  scale_x_date(breaks = "months", date_labels = "%B")
+  scale_x_date(breaks = "months", date_labels = "%b")
 
 #Tornar gráfico interativo
 ggplotly(letalidade_tempo_grafico, add_tracey = "Taxa de Letalidade (%)") %>% 
@@ -1595,7 +1641,7 @@ letalidade_tempo_idade_grafico <- ggplot(letalidade_tempo_idade_melt, aes(x = Da
                                     size = 15),
         strip.text.y = element_text(angle = 0),
         legend.title = element_blank()) +
-  scale_x_date(breaks = "months", date_labels = "%B")
+  scale_x_date(breaks = "months", date_labels = "%b")
 
 #Tornar o gráfico interativo
 ggplotly(letalidade_tempo_idade_grafico)
@@ -1640,7 +1686,7 @@ letalidade_regioes_grafico_interativo <- ggplotly(letalidade_regioes_grafico) %>
                                    collapse = "")))
 #mapa
 ##Definir intervalos da legenda
-bins_5 =  c(0, 1, 2, 3, 4, 5, 6, 7, Inf)
+bins_5 =  c(0, 1, 2, 3, 4, 5, Inf)
 
 ##Ordenar a tabela feita anteriormente para ficar com a mesma ordem que os poligonos do mapa
 letalidade_regioes_ordem <- letalidade_regioes[c(4, 5, 6, 2, 7, 1, 3),]
@@ -1732,7 +1778,7 @@ letalidade_regioes_tempo_grafico <- ggplot(letalidade_regioes_tempo_melt, aes(x 
         axis.title.x = element_text(size = 12),
         legend.text = element_text(size = 8),
         axis.text.x = element_text(size = 8)) +
-  scale_x_date(breaks = "months", date_labels = "%B")
+  scale_x_date(breaks = "months", date_labels = "%b")
 
 #Tornar gráfico interativo
 ggplotly(letalidade_regioes_tempo_grafico) %>% 
@@ -1777,7 +1823,7 @@ internados_grafico <- ggplot(internados, aes(x = data, y =internados, color = ti
   theme(axis.title.y = element_text(size = 12),
         axis.title.x = element_text(size = 12),
         axis.text.x = element_text(size = 7)) +
-  scale_x_date(breaks = "months", date_labels = "%B")
+  scale_x_date(breaks = "months", date_labels = "%b")
 
 #Tornar gráfico interativo
 ggplotly(internados_grafico) %>% 
@@ -1814,7 +1860,7 @@ internados_confirmados_grafico <- ggplot(internados_confirmados, aes(x = data, y
   theme(axis.title.y = element_text(size = 12),
         axis.title.x = element_text(size = 12),
         axis.text.x = element_text(size = 7)) +
-  scale_x_date(breaks = "months", date_labels = "%B")
+  scale_x_date(breaks = "months", date_labels = "%b")
 
 #Tornar gráfico interativo
 ggplotly(internados_confirmados_grafico) %>% 
@@ -1845,7 +1891,7 @@ racio_internados_grafico <- ggplot(racio_internados, aes(x = Data, y = Racio)) +
   geom_line(color = "tomato4") +
   labs(x = "",
        y = "Rácio (%)") +
-  scale_x_date(breaks = "months", date_labels = "%B")
+  scale_x_date(breaks = "months", date_labels = "%b")
 
 
 #Tornar interativo
@@ -1880,7 +1926,7 @@ recuperados_grafico <- ggplot(recuperados, aes(x = Data, y = Recuperados)) +
        y = "Taxa de Recuperados (%)") +
   theme(axis.title.y = element_text(size = 12),
         axis.title.x = element_text(size = 12)) +
-  scale_x_date(breaks = "months", date_labels = "%B")
+  scale_x_date(breaks = "months", date_labels = "%b")
 
 #Tornar gráfico interativo
 ggplotly(recuperados_grafico) %>% 
