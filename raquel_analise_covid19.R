@@ -14,8 +14,17 @@ library(gganimate)
 library(plotly)
 library(RColorBrewer)
 
-#Importar dados
+#Importar dados do covid
 data <- fread("https://raw.githubusercontent.com/dssg-pt/covid19pt-data/master/data.csv")
+
+
+# Tratar base de dados do covid
+
+## Houve um lapso na base de dados e os obitos cumulativos por idade e por sexo para dia 5/10 (linha 223) estao a 0's. Subituimos esses 0's
+## pelos mesmos valores do dia anterior
+
+data[223, 65:84] = data[222, 65:84]
+
 
 #Data de chr para Date
 data$data <- as.Date(data$data,"%d-%m-%Y")
@@ -29,72 +38,72 @@ mapa_pt <- geojson_read("https://raw.githubusercontent.com/dssg-pt/covid19pt-dat
 
 #SINTOMAS
 
-##FREQUÊNCIA
+##FREQU?NCIA
 ###Criar uma tabela com uma coluna para os sintomas, dar-lhe o nome "sintoma", mudar o nome de cada sintoma na tabela 
-###e criar outra coluna para os últimos valores registados de cada sintoma e dar-lhe o nome "percentagem"
+###e criar outra coluna para os ?ltimos valores registados de cada sintoma e dar-lhe o nome "percentagem"
 sintomas <- as.data.frame(t(data[173,41:46])) %>% 
   rownames_to_column(var = "sintoma")
 
 names(sintomas)[2] = "frequencia"
-sintomas[, 1] = c("Tosse", "Febre", "Dificuldade Respiratória", "Cefaleia", "Dores Musculares", "Fraqueza Generalizada")
+sintomas[, 1] = c("Tosse", "Febre", "Dificuldade Respirat?ria", "Cefaleia", "Dores Musculares", "Fraqueza Generalizada")
 
-###Fazer um gráfico de barras com os sintomas no eixo do x e a percentagem no eixo dos y
+###Fazer um gr?fico de barras com os sintomas no eixo do x e a percentagem no eixo dos y
 ggplot(sintomas, aes(x = sintoma, y = frequencia*100)) +
   geom_col(fill = "slategray3",  width = 0.7) +
   scale_y_continuous(expand = c(0, 0)) +
   coord_cartesian( ylim = c(0, max(sintomas$frequencia*100 + 10))) +
   theme_classic() +
-  labs(title = "Frequência de Sintomas nos Pacientes com COVID19") +
+  labs(title = "Frequ?ncia de Sintomas nos Pacientes com COVID19") +
   theme(plot.title = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), 
                                   size = 20, color = "black", hjust = 0.5)) +
   xlab("Sintomas") +
   theme(axis.title.x = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 15)) +
   theme(axis.text.x = element_text(size=12, color = "black")) +
-  ylab("Frequência (%)") +
+  ylab("Frequ?ncia (%)") +
   theme(axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 20), size = 15)) +
   theme(axis.text.y = element_text(size=12, color = "black")) +
   geom_text(aes(label = scales::percent(frequencia, digits = 2)), vjust = -0.5, size = 4) +
-  scale_x_discrete(labels = c("Cefaleia", "Dificuldade\nRespiratória", "Dores\nMusculares",
+  scale_x_discrete(labels = c("Cefaleia", "Dificuldade\nRespirat?ria", "Dores\nMusculares",
                               "Febre", "Fraqueza\nGeneralizada", "Tosse"))
 
 
 
-##EVOLUÇÃO TEMPORAL
-###Criar uma tabela com colunas, uma para cada sintoma, sendo o valor para cada dia a frequência desse 
-###sintoma nesse dia vezes o número de confirmados até esse dia menos a frequência desse sintoma no dia anterior 
-###vezes o número de confirmados até ao dia anterior, isto para nos dar o número de pessoas com esse sintoma nesse 
-###dia apenas, e depois tudo a dividir pelo número de novos confirmados nesse dia para termos o resultado em percentagem. 
+##EVOLU??O TEMPORAL
+###Criar uma tabela com colunas, uma para cada sintoma, sendo o valor para cada dia a frequ?ncia desse 
+###sintoma nesse dia vezes o n?mero de confirmados at? esse dia menos a frequ?ncia desse sintoma no dia anterior 
+###vezes o n?mero de confirmados at? ao dia anterior, isto para nos dar o n?mero de pessoas com esse sintoma nesse 
+###dia apenas, e depois tudo a dividir pelo n?mero de novos confirmados nesse dia para termos o resultado em percentagem. 
 sintomas_tempo <- as.data.frame((data[8:173,41:46]*data$confirmados[8:173])
                                 -(data[7:172, 41:46]*data$confirmados[7:172]))/data$confirmados_novos[8:173] 
 
-###Acresecentar à tabela que criámos, uma coluna com as datas
+###Acresecentar ? tabela que cri?mos, uma coluna com as datas
 sintomas_tempo <- rbind(data[7, 41:46], sintomas_tempo)
 
-###É ainda necessário acrescentar a linha 7 pois como são as primerias frequências a aparecer 
-###já indicam a frequência específica para esse dia
+###? ainda necess?rio acrescentar a linha 7 pois como s?o as primerias frequ?ncias a aparecer 
+###j? indicam a frequ?ncia espec?fica para esse dia
 sintomas_tempo <- cbind(data$data[7:173], sintomas_tempo)
 
-###No casos do sintoma Dificuldade Respiratória, este só começou a ser registado mais tarde pelo que 
-###o primerio valor que já representa a frequência específica para esse dia é o da linha 3, coluna 4
+###No casos do sintoma Dificuldade Respirat?ria, este s? come?ou a ser registado mais tarde pelo que 
+###o primerio valor que j? representa a frequ?ncia espec?fica para esse dia ? o da linha 3, coluna 4
 sintomas_tempo[3, 4] <- 0.11
 
 ###Mudar os nomes das colunas
-names(sintomas_tempo) <- c("Data", "Tosse", "Febre", "Dificuldade respiratória", "Cefaleia", 
+names(sintomas_tempo) <- c("Data", "Tosse", "Febre", "Dificuldade respirat?ria", "Cefaleia", 
                            "Dores Musculares",  "Fraqueza Generalizada")
 
-###Fazer o melt da tablea para poder representar a ecolução temporal num gráfico e mudar o nome da coluna 2 para Sintomas
+###Fazer o melt da tablea para poder representar a ecolu??o temporal num gr?fico e mudar o nome da coluna 2 para Sintomas
 sintomas_tempo_melt <-  melt(sintomas_tempo, id.vars="Data")
 names(sintomas_tempo_melt)[2] <- "sintoma"
 
-###Fazer um gráfico de linhas com a data no eixo do x, a frequência diária dos sintomas no eixo dos y 
+###Fazer um gr?fico de linhas com a data no eixo do x, a frequ?ncia di?ria dos sintomas no eixo dos y 
 ###e cada sintoma numa linha
 ggplot(sintomas_tempo_melt, aes(x = Data, y = value*100, color = sintoma)) +
   geom_line() +
   facet_grid(sintomas_tempo_melt$sintoma) +
   guides(color = FALSE) +
-  xlab("Mês") +
-  ylab("Frequência (%)")+
-  labs(title = "Frequêcia de Sintomas ao Longo do Tempo") +
+  xlab("M?s") +
+  ylab("Frequ?ncia (%)")+
+  labs(title = "Frequ?cia de Sintomas ao Longo do Tempo") +
   theme(plot.title = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), 
                                   size = 20, color = "black", hjust = 0.5)) +
   theme(axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 20), size = 15)) +
@@ -105,8 +114,8 @@ ggplot(sintomas_tempo_melt, aes(x = Data, y = value*100, color = sintoma)) +
 
 #CASOS
 
-##CASOS POR GRUPO ETÁRIO
-###Selecionar as colunas de confirmados feminino para todas as idades e juntá-las numa tabela e
+##CASOS POR GRUPO ET?RIO
+###Selecionar as colunas de confirmados feminino para todas as idades e junt?-las numa tabela e
 ###fazer o mesmo para o masculino
 femininos <- as.data.frame(data %>% 
                              dplyr::select(starts_with("confirmados_") & (ends_with("9_f")| ends_with("plus_f"))))
@@ -114,49 +123,49 @@ femininos <- as.data.frame(data %>%
 masculinos <- as.data.frame(data %>% 
                               dplyr::select((starts_with("confirmados_") & (ends_with("9_m")| ends_with("plus_m")))))
 
-###Selecionar o valor mais recente de cada coluna de modo a ficar com o número de casos até ao momento para cada
-###faixa etária e para cada género
+###Selecionar o valor mais recente de cada coluna de modo a ficar com o n?mero de casos at? ao momento para cada
+###faixa et?ria e para cada g?nero
 casos_femininos_idade <- as.data.frame(lapply(femininos, last))
 casos_masculinos_idade <- as.data.frame(lapply(masculinos, last))
 
-###Somar a tabela dos femininos com a dos masculinos o que vai dar o número de casos até ao momento por idade apenas
+###Somar a tabela dos femininos com a dos masculinos o que vai dar o n?mero de casos at? ao momento por idade apenas
 casos_total_idade <- as.data.frame(casos_femininos_idade + casos_masculinos_idade)
 
-###Criar tabela com uma colunda para a faixa etária e outra para o número de casos femininos e mudar coluna
-###da faixa etária para os nomes adequados
+###Criar tabela com uma colunda para a faixa et?ria e outra para o n?mero de casos femininos e mudar coluna
+###da faixa et?ria para os nomes adequados
 casos_femininos_idade_invertido <- as.data.frame(t(casos_femininos_idade)) %>% 
   rownames_to_column(var = "Idade")
 names(casos_femininos_idade_invertido)[2] <- "Femininos"
 casos_femininos_idade_invertido[,1] <- c("0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80+")
 
-###Criar tabela com uma colunda para a faixa etária e outra para o número de casos masculinos e mudar coluna
-###da faixa etária para os nomes adequados
+###Criar tabela com uma colunda para a faixa et?ria e outra para o n?mero de casos masculinos e mudar coluna
+###da faixa et?ria para os nomes adequados
 casos_masculinos_idade_invertido <- as.data.frame(t(casos_masculinos_idade)) %>% 
   rownames_to_column(var = "Idade")
 names(casos_masculinos_idade_invertido)[2] <- "Masculinos"
 casos_masculinos_idade_invertido[,1] <- c("0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80+")
 
-###Criar tabela com uma colunda para a faixa etária e outra para o número de casos total e mudar coluna
-###da faixa etária para os nomes adequados
+###Criar tabela com uma colunda para a faixa et?ria e outra para o n?mero de casos total e mudar coluna
+###da faixa et?ria para os nomes adequados
 casos_total_idade_invertido <- as.data.frame(t(casos_total_idade)) %>% 
   rownames_to_column(var = "Idade")
 names(casos_total_idade_invertido)[2] <- "Total"
 casos_total_idade_invertido[,1] <- c("0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80+")
 
-###Juntar as 3 tabelas que criámos
+###Juntar as 3 tabelas que cri?mos
 casos_fem_masc <- merge(casos_femininos_idade_invertido, casos_masculinos_idade_invertido, by = "Idade")
 casos_fem_masc_tot <- merge(casos_fem_masc, casos_total_idade_invertido, by = "Idade")
 
-###Fazer melt para poder fazer gráfico 
+###Fazer melt para poder fazer gr?fico 
 casos_fem_masc_tot_melt <- melt(casos_fem_masc_tot, id.vars = "Idade")
 
-###Fazer gráfico de barras com idade no eixo do x, o número de casos no eixo do y e o género em cada barra
+###Fazer gr?fico de barras com idade no eixo do x, o n?mero de casos no eixo do y e o g?nero em cada barra
 ggplot(casos_fem_masc_tot_melt, aes(x = Idade, y = value, fill = variable)) +
   geom_col(position = "dodge") +
   scale_y_continuous(expand = c(0, 0)) +
   coord_cartesian(ylim = c(0, max(casos_fem_masc_tot_melt$value + 1000))) +
   theme_classic() +
-  labs(title = "Casos Por Idade e Género") +
+  labs(title = "Casos Por Idade e G?nero") +
   theme(plot.title = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), 
                                   size = 20, color = "Black", hjust = 0.5)) +
   theme(axis.title.x = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 15)) +
@@ -164,39 +173,39 @@ ggplot(casos_fem_masc_tot_melt, aes(x = Idade, y = value, fill = variable)) +
   ylab("Mortes") +
   theme(axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 20), size = 15)) +
   theme(axis.text.y = element_text(size=12, color = "black")) +
-  guides(fill=guide_legend(title="Género")) +
+  guides(fill=guide_legend(title="G?nero")) +
   geom_text(aes(label = value), position = position_dodge(width = 0.9), vjust = -0.5, size = 2.5) +
   scale_fill_manual(values = c("coral2", "lightblue", "saddlebrown"))
 
 
 
-##CASOS POR GRUPO ETÁRIO LONGO DO TEMPO
-###Pegando nas tabelas que fizémos por género or faixa etária, como os valores na base de dados são cumulativos, 
-###fazemos o valor desse dia menos o valor do dia anterior para obtermos o número de novos casos por dia, por faixa etária
-###por género
+##CASOS POR GRUPO ET?RIO LONGO DO TEMPO
+###Pegando nas tabelas que fiz?mos por g?nero or faixa et?ria, como os valores na base de dados s?o cumulativos, 
+###fazemos o valor desse dia menos o valor do dia anterior para obtermos o n?mero de novos casos por dia, por faixa et?ria
+###por g?nero
 femininos_novos <- femininos - lag(femininos)
 masculinos_novos <- masculinos - lag(masculinos)
 
-###Criar uma tabela com uma coluna para a data e outras colunas com o número de casos por dia por faixa etária apenas
+###Criar uma tabela com uma coluna para a data e outras colunas com o n?mero de casos por dia por faixa et?ria apenas
 ###que resultam da soma dos novos casos femininos com os novos casos masculinos
 casos_total_tempo <- cbind(data$data, as.data.frame(femininos_novos + masculinos_novos))
 
-###Como  linha 7 que é a primeira em que há registo dos casos já representa o número de casos nesse dia apenas,
-###adicionámos essa linha à tabela e mudámos o nome das colunas
+###Como  linha 7 que ? a primeira em que h? registo dos casos j? representa o n?mero de casos nesse dia apenas,
+###adicion?mos essa linha ? tabela e mud?mos o nome das colunas
 casos_total_tempo[7, 2:10] <- femininos[7,] + masculinos[7,]
 names(casos_total_tempo)<- c("Data", "0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80+")
 
-###Fazer melt para fazer o gráfico
+###Fazer melt para fazer o gr?fico
 casos_total_tempo_melt <- melt(casos_total_tempo, id.vars = "Data")
 
-###Fazer o gráfico de linhas com a data no eixo do x, o número de casos no eixo do y e a faixa etária em cada linha
+###Fazer o gr?fico de linhas com a data no eixo do x, o n?mero de casos no eixo do y e a faixa et?ria em cada linha
 ggplot(casos_total_tempo_melt, aes(x = Data, y = value, color = variable)) +
   geom_line() +
   facet_grid(casos_total_tempo_melt$variable) +
   guides(color = FALSE) +
-  xlab("Mês") +
+  xlab("M?s") +
   ylab("Casos") +
-  labs(title = "Casos de COVID19 por Grupo Etário ao Longo do Tempo") +
+  labs(title = "Casos de COVID19 por Grupo Et?rio ao Longo do Tempo") +
   theme(plot.title = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), 
                                   size = 20, color = "black", hjust = 0.5)) +
   theme(axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 20), size = 15)) +
@@ -205,22 +214,22 @@ ggplot(casos_total_tempo_melt, aes(x = Data, y = value, color = variable)) +
 
 
 
-##CASOS POR REGIÃO
-###Criar tabela com uma coluna para a região e outra para o valor mais recente do número de casos confirmados,
-###mudar o nome das colunas e mudar o nome das regiões
+##CASOS POR REGI?O
+###Criar tabela com uma coluna para a regi?o e outra para o valor mais recente do n?mero de casos confirmados,
+###mudar o nome das colunas e mudar o nome das regi?es
 casos_regioes <- as.data.frame(t(as.data.frame(lapply(data[,confirmados_arsnorte:confirmados_madeira],
                                                       max, na.rm = TRUE))))%>% 
   rownames_to_column(var = "Regioes")
 names(casos_regioes)[2] <- "Casos"
-casos_regioes[, 1] <- c("Norte", "Centro", "Lisboa e Vale \ndo Tejo", "Alentejo", "Algarve", "Açores", "Madeira")
+casos_regioes[, 1] <- c("Norte", "Centro", "Lisboa e Vale \ndo Tejo", "Alentejo", "Algarve", "A?ores", "Madeira")
 
-###Fazer um gráfico de barras com as regiões no eixo do x e o número de casos no eixo do y
+###Fazer um gr?fico de barras com as regi?es no eixo do x e o n?mero de casos no eixo do y
 ggplot(casos_regioes, aes(x = Regioes, y = Casos)) +
   geom_col(fill = "salmon1") +
   scale_y_continuous(expand = c(0, 0)) +
   coord_cartesian( ylim = c(0, max(casos_regioes$Casos + 10000))) +
   theme_classic() +
-  labs(title = "número de Casos por Região") +
+  labs(title = "n?mero de Casos por Regi?o") +
   theme(plot.title = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 20, color = "Black", hjust = 0.5)) +
   theme(axis.title.x = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 15)) +
   theme(axis.text.x = element_text(size=12, color = "black")) +
@@ -232,7 +241,7 @@ ggplot(casos_regioes, aes(x = Regioes, y = Casos)) +
 ####Definir intervalos que queremos na legenda
 bins =  c(0, 200, 600, 1200, 1400, 10000, Inf)
 
-####Colocar as Regiãoes da tabela pela mesma ordem que a dos poligonos
+####Colocar as Regi?oes da tabela pela mesma ordem que a dos poligonos
 casos_regioes_ordem <- casos_regioes[c(4, 5, 6, 2, 7, 1, 3),]
 
 ####Definir a palete de cores para o mapa
@@ -271,26 +280,26 @@ leaflet(mapa_pt) %>%
                                              padding = "3px 8px"),
                                 textsize = "15px",
                                 direction = "auto")) %>% 
-  addLegend(pal = pal, values = casos_regioes_ordem$Casos, opacity = 0.7, title = "Nº Casos",
+  addLegend(pal = pal, values = casos_regioes_ordem$Casos, opacity = 0.7, title = "N? Casos",
             position = "bottomright")
 
 
 
-##INCIDÊNCIA (novos/população de risco)
-###Variáveis com a população total, feminina e masculina com base no INE
+##INCID?NCIA (novos/popula??o de risco)
+###Vari?veis com a popula??o total, feminina e masculina com base no INE
 populacao_pt = 10295909
 mulheres_pt = 5435932
 homens_pt = 4859977
 
-###Cálculo da incidência criando uma tabbela para o total, outra para mulheres e outra para homens
+###C?lculo da incid?ncia criando uma tabbela para o total, outra para mulheres e outra para homens
 incidencia_total <- as.data.frame(data$confirmados_novos/ (populacao_pt - data$confirmados - data$obitos))
 incidencia_homens <- as.data.frame((data$confirmados_m - lag(data$confirmados_m)) 
                                    / (homens_pt - data$confirmados_m - data$obitos_m)) 
 incidencia_mulheres <- as.data.frame((data$confirmados_f - lag(data$confirmados_f)) 
                                      / (mulheres_pt - data$confirmados_f - data$obitos_f))
 
-##Remover valores negativos devido a erro na base de dados original em que valor cumulativo do número casos homens 
-###e mulheres era 0 e não devia
+##Remover valores negativos devido a erro na base de dados original em que valor cumulativo do n?mero casos homens 
+###e mulheres era 0 e n?o devia
 incidencia_homens[174:175,] <- NA
 incidencia_mulheres[174:175,] <- NA
 
@@ -298,18 +307,18 @@ incidencia_mulheres[174:175,] <- NA
 incidencia <- data.frame(data$data, incidencia_total, incidencia_mulheres, incidencia_homens)
 names(incidencia) <- c("Data", "Total", "Mulheres", "Homens")
 
-###Fazer melt para poder fazer gráfico de linhas e dar nome à coluna do género
+###Fazer melt para poder fazer gr?fico de linhas e dar nome ? coluna do g?nero
 incidencia_melt <- melt(incidencia, id.vars = "Data")
 names(incidencia_melt)[2] <- "Genero"
 
-###Fazer gráfico de linhas com data no eixo do x, a incidencia no eixo do y e o género em cada linha
+###Fazer gr?fico de linhas com data no eixo do x, a incidencia no eixo do y e o g?nero em cada linha
 ggplot(incidencia_melt, aes(x = Data, y = value*100, color = Genero)) +
   geom_line() +
   facet_grid(incidencia_melt$Genero) +
   guides(color = FALSE) +
-  xlab("Mês") +
-  ylab("incidência (%)") + 
-  labs(title = "incidência Diária por género") +
+  xlab("M?s") +
+  ylab("incid?ncia (%)") + 
+  labs(title = "incid?ncia Di?ria por g?nero") +
   theme(plot.title = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 20, color = "Black", hjust = 0.5)) +
   theme(axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 20), size = 15)) +
   theme(axis.title.x = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 15)) +
@@ -317,8 +326,8 @@ ggplot(incidencia_melt, aes(x = Data, y = value*100, color = Genero)) +
 
 
 
-##INCIDÊNCIA POR REGIÃO AO LONGO DO TEMPO
-###Valores da população de cada Região com base no INE
+##INCID?NCIA POR REGI?O AO LONGO DO TEMPO
+###Valores da popula??o de cada Regi?o com base no INE
 acores = 242796
 alentejo = 705018
 algarve = 438635
@@ -327,30 +336,30 @@ lisboa = 2854802
 madeira = 254254
 norte = 3573961
 
-###Criar uma tabela com uma coluna para as Regiãoes e outra para o número de pessoas nessa Região
+###Criar uma tabela com uma coluna para as Regi?oes e outra para o n?mero de pessoas nessa Regi?o
 populacao_regioes <- as.data.frame(c(norte, centro, lisboa, alentejo, algarve, acores, madeira), 
-                                   c("norte", "centro", "lisboa", "alentejo", "algarve", "Açores", "madeira"))
+                                   c("norte", "centro", "lisboa", "alentejo", "algarve", "A?ores", "madeira"))
 
-###Fazer com que cada coluna seja uma Região e repetir cada número as vezes necessárias para ficar com o número
+###Fazer com que cada coluna seja uma Regi?o e repetir cada n?mero as vezes necess?rias para ficar com o n?mero
 ###igual ao das colunas da base de dados
 populacao_regioes_rep <- as.data.frame(t(populacao_regioes[rep(seq_len(ncol(populacao_regioes)), each = nrow(data))]))
 
-###Calcular a incidência em cada Região fazendo os casos novos por Região a dividir pela população da Região 
-###menos os confirmados da Região menos os óbitos da Região e dar nomes a cada coluna
+###Calcular a incid?ncia em cada Regi?o fazendo os casos novos por Regi?o a dividir pela popula??o da Regi?o 
+###menos os confirmados da Regi?o menos os ?bitos da Regi?o e dar nomes a cada coluna
 incidencia_regioes <- cbind(data$data, (as.data.frame(data[, confirmados_arsnorte:confirmados_madeira] 
                                                       - lag(data[, confirmados_arsnorte:confirmados_madeira]))) 
                             / (populacao_regioes_rep - as.data.frame(data[,confirmados_arsnorte:confirmados_madeira] 
                                                                      - data[,obitos_arsnorte:obitos_madeira])))
-names(incidencia_regioes) <- c("Data", "Norte", "Centro", "Lisboa e Vale do Tejo", "Alentejo", "Algarve", "Açores", "Madeira")
+names(incidencia_regioes) <- c("Data", "Norte", "Centro", "Lisboa e Vale do Tejo", "Alentejo", "Algarve", "A?ores", "Madeira")
 
-###Fazer melt para fazer o gráfico e dar nomes a cada coluna
+###Fazer melt para fazer o gr?fico e dar nomes a cada coluna
 incidencia_regioes_melt <- melt(incidencia_regioes, id.vars = "Data")
 names(incidencia_regioes_melt) <- c("data", "regiao", "valor")
 
-###Fazer o gráfico de linhas com a data no eixo do x, a incidência no eixo do y e a Região em cada linha
+###Fazer o gr?fico de linhas com a data no eixo do x, a incid?ncia no eixo do y e a Regi?o em cada linha
 ggplot(incidencia_regioes_melt, aes(x = data, y = valor*100, color = regiao)) +
   geom_line() + 
-  labs(x = "Mês", y = "incidência (%)", title = "incidência de COVID19 por Região ao Longo do Tempo") +
+  labs(x = "M?s", y = "incid?ncia (%)", title = "incid?ncia de COVID19 por Regi?o ao Longo do Tempo") +
   facet_grid(incidencia_regioes_melt$regiao) +
   theme(axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 20), size = 15)) +
   guides(color = FALSE) +
@@ -361,21 +370,21 @@ ggplot(incidencia_regioes_melt, aes(x = data, y = valor*100, color = regiao)) +
 
 
 
-##INCIDÊNCIA POR REGIÃO
+##INCID?NCIA POR REGI?O
 ###Definir intervalos para legenda
 bins_2 =  c(0, 0.002, 0.004, 0.006, 0.008, 0.01, 0.02, Inf)
 
-###Da tabela anterior com todas as datas, selecionar apenas o valor mais recente e mudar nome coluna e Regiãoes
+###Da tabela anterior com todas as datas, selecionar apenas o valor mais recente e mudar nome coluna e Regi?oes
 incidencia_regioes_ordem <- as.data.frame(t(as.data.frame(lapply(incidencia_regioes[,c(5, 6, 7, 3, 8, 2, 4)], last)))) %>% 
   rownames_to_column(var = "Regiao") 
-incidencia_regioes_ordem[,1] <- c("Alentejo", "Algarve", "Açores","Centro", "Madeira", "Norte", "Lisboa e Vale do Tejo")
+incidencia_regioes_ordem[,1] <- c("Alentejo", "Algarve", "A?ores","Centro", "Madeira", "Norte", "Lisboa e Vale do Tejo")
 
 ###Definir palete de cores para mapa
 pal_2 <- colorBin("YlOrRd", domain = incidencia_regioes_ordem[,2]*100, bins = bins_2)
 
 ###Definir legenda quando se passa com o rato por cima
 labels_2 <- sprintf(
-  "<strong>%s</strong><br/>%g&#x25 incidência",
+  "<strong>%s</strong><br/>%g&#x25 incid?ncia",
   incidencia_regioes_ordem[,1], round(incidencia_regioes_ordem[,2]*100, digits = 4)
 ) %>% lapply(htmltools::HTML)
 
@@ -406,7 +415,7 @@ leaflet(mapa_pt) %>%
                                              padding = "3px 8px"),
                                 textsize = "15px",
                                 direction = "auto")) %>% 
-  addLegend(pal = pal, values = incidencia_regioes_ordem[,2]*100, opacity = 0.7, title = "incidência",
+  addLegend(pal = pal, values = incidencia_regioes_ordem[,2]*100, opacity = 0.7, title = "incid?ncia",
             position = "bottomright")
 
 
@@ -414,17 +423,17 @@ leaflet(mapa_pt) %>%
 
 #MORTES
 
-##NÚMERO
-###Criar uma tabela com o valor mais recente, que é também o valor mais alto, do óbitos femininos e masculinos, 
-###fazendo uma coluna para o género e outra para o número de óbitos
+##N?MERO
+###Criar uma tabela com o valor mais recente, que ? tamb?m o valor mais alto, do ?bitos femininos e masculinos, 
+###fazendo uma coluna para o g?nero e outra para o n?mero de ?bitos
 obitos_genero <- as.data.frame(t(as.data.frame(lapply(data[,obitos_f:obitos_m], max, na.rm = TRUE)))) %>% 
   rownames_to_column(var = "genero")
 names(obitos_genero)[2] <- "mortes"
 
-###Fazer um gráfico de barras com o genero no eixo do x e o número de mortes no eixo do y
+###Fazer um gr?fico de barras com o genero no eixo do x e o n?mero de mortes no eixo do y
 ggplot(obitos_genero, aes(x = genero, y = mortes)) +
   geom_col(fill = "darksalmon") + 
-  labs(title = "número de Mortes Por género", x = "") + 
+  labs(title = "n?mero de Mortes Por g?nero", x = "") + 
   scale_y_continuous(expand = c(0, 0)) +
   coord_cartesian( ylim = c(0, max(obitos_genero$mortes + 100))) +
   theme_classic() +
@@ -439,8 +448,8 @@ ggplot(obitos_genero, aes(x = genero, y = mortes)) +
 
 
 
-##MORTES POR GRUPO ETÁRIO E GÉNERO
-###Selecionar as colunas de obitos feminino para todas as idades e juntá-las numa tabela e 
+##MORTES POR GRUPO ET?RIO E G?NERO
+###Selecionar as colunas de obitos feminino para todas as idades e junt?-las numa tabela e 
 ###fazer o mesmo para o masculino
 femininos_mortes <- as.data.frame(data %>% 
                                     dplyr::select(starts_with("obitos_") & (ends_with("9_f")| ends_with("plus_f"))))
@@ -448,49 +457,49 @@ femininos_mortes <- as.data.frame(data %>%
 masculinos_mortes <- as.data.frame(data %>% 
                                      dplyr::select((starts_with("obitos_") & (ends_with("9_m")| ends_with("plus_m")))))
 
-###Selecionar o valor mais recente de cada coluna de modo a ficar com o número de óbitos até ao momento 
-###para cada faixa etária e para cada género
+###Selecionar o valor mais recente de cada coluna de modo a ficar com o n?mero de ?bitos at? ao momento 
+###para cada faixa et?ria e para cada g?nero
 mortes_femininos_idade <- as.data.frame(lapply(femininos_mortes, last))
 mortes_masculinos_idade <- as.data.frame(lapply(masculinos_mortes, last))
 
-###Somar a tabela dos femininos com a dos masculinos o que vai dar o número de óbitos até ao momento por idade apenas
+###Somar a tabela dos femininos com a dos masculinos o que vai dar o n?mero de ?bitos at? ao momento por idade apenas
 mortes_total_idade <- as.data.frame(mortes_femininos_idade + mortes_masculinos_idade)
 
-###Criar tabela com uma colunda para a faixa etária e outra para o número de óbitos femininos e mudar coluna da 
-###faixa etária para os nomes adequados
+###Criar tabela com uma colunda para a faixa et?ria e outra para o n?mero de ?bitos femininos e mudar coluna da 
+###faixa et?ria para os nomes adequados
 mortes_femininos_idade_invertido <- as.data.frame(t(mortes_femininos_idade))%>% 
   rownames_to_column(var = "Idade")
 names(mortes_femininos_idade_invertido)[2] <- "Femininos"
 mortes_femininos_idade_invertido[,1] <- c("0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80+")
 
-###Criar tabela com uma colunda para a faixa etária e outra para o número de óbitos masculinos e mudar coluna da 
-###faixa etária para os nomes adequados
+###Criar tabela com uma colunda para a faixa et?ria e outra para o n?mero de ?bitos masculinos e mudar coluna da 
+###faixa et?ria para os nomes adequados
 mortes_masculinos_idade_invertido <- as.data.frame(t(mortes_masculinos_idade)) %>% 
   rownames_to_column(var = "Idade")
 names(mortes_masculinos_idade_invertido)[2] <- "Masculinos"
 mortes_masculinos_idade_invertido[,1] <- c("0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80+")
 
-###Criar tabela com uma colunda para a faixa etária e outra para o número de óbitos total e mudar coluna da 
-###faixa etária para os nomes adequados
+###Criar tabela com uma colunda para a faixa et?ria e outra para o n?mero de ?bitos total e mudar coluna da 
+###faixa et?ria para os nomes adequados
 mortes_total_idade_invertido <- as.data.frame(t(mortes_total_idade)) %>% 
   rownames_to_column(var = "Idade")
 names(mortes_total_idade_invertido)[2] <- "Total"
 mortes_total_idade_invertido[,1] <- c("0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80+")
 
-###Juntar as 3 tabelas que criámos
+###Juntar as 3 tabelas que cri?mos
 mortes_fem_masc <- merge(mortes_femininos_idade_invertido, mortes_masculinos_idade_invertido, by = "Idade")
 mortes_fem_masc_tot <- merge(mortes_fem_masc, mortes_total_idade_invertido, by = "Idade")
 
-###Fazer melt para poder fazer gráfico 
+###Fazer melt para poder fazer gr?fico 
 mortes_fem_masc_tot_melt <- melt(mortes_fem_masc_tot, id.vars = "Idade")
 
-###Fazer gráfico de barras com idade no eixo do x, o número de óbitos no eixo do y e o género em cada barra
+###Fazer gr?fico de barras com idade no eixo do x, o n?mero de ?bitos no eixo do y e o g?nero em cada barra
 ggplot(mortes_fem_masc_tot_melt, aes(x = Idade, y = value, fill = variable)) +
   geom_col(position = "dodge") +
   scale_y_continuous(expand = c(0, 0)) +
   coord_cartesian( ylim = c(0, max(mortes_fem_masc_tot_melt$value + 100))) +
   theme_classic() +
-  labs(title = "Mortes Por Idade e género") +
+  labs(title = "Mortes Por Idade e g?nero") +
   theme(plot.title = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), 
                                   size = 20, color = "Black", hjust = 0.5)) +
   theme(axis.title.x = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 15)) +
@@ -498,26 +507,26 @@ ggplot(mortes_fem_masc_tot_melt, aes(x = Idade, y = value, fill = variable)) +
   ylab("Mortes") +
   theme(axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 20), size = 15)) +
   theme(axis.text.y = element_text(size=12, color = "black")) +
-  guides(fill=guide_legend(title="género")) +
+  guides(fill=guide_legend(title="g?nero")) +
   geom_text(aes(label = value), position = position_dodge(width = 0.9), vjust = -0.5, size = 3.5) +
   scale_fill_manual(values = c("coral2", "lightblue", "saddlebrown"))
 
 
 
-##MORTES POR REGIÃO
-###Criar tabela com uma coluna para as Regiãoes e outra para o número mais recente total de óbitos e dar nomes
+##MORTES POR REGI?O
+###Criar tabela com uma coluna para as Regi?oes e outra para o n?mero mais recente total de ?bitos e dar nomes
 mortos_regioes <- as.data.frame(t(as.data.frame(lapply(data[,obitos_arsnorte:obitos_madeira], last)))) %>% 
   rownames_to_column(var = "Regioes")
 names(mortos_regioes)[2] <- "Mortes"
-mortos_regioes[, 1] <- c("Norte", "Centro", "Lisboa e Vale \ndo Tejo", "Alentejo", "Algarve", "Açores", "Madeira")
+mortos_regioes[, 1] <- c("Norte", "Centro", "Lisboa e Vale \ndo Tejo", "Alentejo", "Algarve", "A?ores", "Madeira")
 
-###Fazer gráfico com Regiãoes no eixo do x e número de mortes no eixo do y
+###Fazer gr?fico com Regi?oes no eixo do x e n?mero de mortes no eixo do y
 ggplot(mortos_regioes, aes(x = Regioes, y = Mortes)) +
   geom_col(fill = "salmon1") +
   scale_y_continuous(expand = c(0, 0)) +
   coord_cartesian( ylim = c(0, max(mortos_regioes$Mortes + 125))) +
   theme_classic() +
-  labs(title = "número de Mortes por Região") +
+  labs(title = "n?mero de Mortes por Regi?o") +
   theme(plot.title = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 20, color = "Black", hjust = 0.5)) +
   theme(axis.title.x = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 15)) +
   theme(axis.text.x = element_text(size=12, color = "black")) +
@@ -568,24 +577,24 @@ leaflet(mapa_pt) %>%
                                              padding = "3px 8px"),
                                 textsize = "15px",
                                 direction = "auto")) %>% 
-  addLegend(pal = pal, values = incidencia_regioes_ordem[,2]*100, opacity = 0.7, title = "Nº Mortos",
+  addLegend(pal = pal, values = incidencia_regioes_ordem[,2]*100, opacity = 0.7, title = "N? Mortos",
             position = "bottomright")
 
 
 
-##MORTALIDADE (obitos/população)
-###Cálculo da mortalidade total, feminina e masculina com base no valor mais recente dos óbitos, que é também o mais alto
+##MORTALIDADE (obitos/popula??o)
+###C?lculo da mortalidade total, feminina e masculina com base no valor mais recente dos ?bitos, que ? tamb?m o mais alto
 mortalidade_total <- max(data$obitos, na.rm = TRUE) / populacao_pt
 mortalidade_mulheres <- max(data$obitos_f, na.rm = TRUE) / mulheres_pt
 mortalidade_homens <- max(data$obitos_m, na.rm =TRUE) / homens_pt
 
-###Criar uma tabela com uma coluna para o género e outra para o valor da mortalidade e dar nome apropriado aos generos
+###Criar uma tabela com uma coluna para o g?nero e outra para o valor da mortalidade e dar nome apropriado aos generos
 mortalidade <- data.frame(t(data.frame(mortalidade_total, mortalidade_mulheres, mortalidade_homens))) %>% 
   rownames_to_column(var = "genero")
 names(mortalidade)[2] <- "mortalidade"
 mortalidade[, 1] <- c("Total", "Mulheres", "Homens")
 
-###Criar um gráfico de barras com o genero no eixo do x e a mortalidade no eixo do y
+###Criar um gr?fico de barras com o genero no eixo do x e a mortalidade no eixo do y
 ggplot(mortalidade, aes(x = genero, y = mortalidade*100)) +
   geom_col(fill = "salmon1") +
   scale_y_continuous(expand = c(0, 0)) +
@@ -603,21 +612,21 @@ ggplot(mortalidade, aes(x = genero, y = mortalidade*100)) +
 
 
 
-##MORTALIDADE POR REGIÃO
-###Criar tabela com uma coluna para as Regiãoes e outra para a mortalidade mais recente e dar nomes apropriados
+##MORTALIDADE POR REGI?O
+###Criar tabela com uma coluna para as Regi?oes e outra para a mortalidade mais recente e dar nomes apropriados
 mortalidade_regioes <- data.frame(t(as.data.frame(lapply(data[, obitos_arsnorte:obitos_madeira], last))) 
                                   / populacao_regioes) %>% 
   rownames_to_column(var = "Regiao")
 names(mortalidade_regioes)[2] <- "Mortalidade"
-mortalidade_regioes[, 1] <- c("Norte", "Centro", "Lisboa e Vale \ndo Tejo", "Alentejo", "Algarve", "Açores", "Madeira")
+mortalidade_regioes[, 1] <- c("Norte", "Centro", "Lisboa e Vale \ndo Tejo", "Alentejo", "Algarve", "A?ores", "Madeira")
 
-###Fazer gráfico com Regiãoes no eixo do x e mortaldiade no eixo do y
+###Fazer gr?fico com Regi?oes no eixo do x e mortaldiade no eixo do y
 ggplot(mortalidade_regioes, aes(x = Regiao, y = Mortalidade*100)) +
   geom_col(fill = "gray") +
   scale_y_continuous(expand = c(0, 0)) +
   coord_cartesian( ylim = c(0, max(mortalidade_regioes$Mortalidade*106))) +
   theme_classic() +
-  labs(title = "Mortalidade Por Região") +
+  labs(title = "Mortalidade Por Regi?o") +
   theme(plot.title = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), 
                                   size = 20, color = "Black", hjust = 0.5)) +
   theme(axis.title.x = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 15)) +
@@ -676,19 +685,19 @@ leaflet(mapa_pt) %>%
 
 
 ##LETALIDADE (obitos/confirmados)
-###Cálculo da letalidade total, feminina e masculina com base no valor mais recente dos óbitos, 
-###que é também o mais alto, e no valor mais recente de confirmados
+###C?lculo da letalidade total, feminina e masculina com base no valor mais recente dos ?bitos, 
+###que ? tamb?m o mais alto, e no valor mais recente de confirmados
 letalidade_total <- max(data$obitos, na.rm = TRUE) / last(data$confirmados)
 letalidade_mulheres <- max(data$obitos_f, na.rm = TRUE) / last(data$confirmados_f)
 letalidade_homens <- max(data$obitos_m, na.rm = TRUE) / last(data$confirmados_m)
 
-###Criar uma tabela com uma coluna para o género e outra para o valor da letalidade e dar nome apropriado aos generos
+###Criar uma tabela com uma coluna para o g?nero e outra para o valor da letalidade e dar nome apropriado aos generos
 letalidade <- data.frame(t(data.frame(letalidade_total, letalidade_mulheres, letalidade_homens))) %>% 
   rownames_to_column(var = "genero")
 names(letalidade)[2] <- "letalidade"
 letalidade[, 1] <- c("Total", "Mulheres", "Homens")
 
-###Criar um gráfico de barras com o genero no eixo do x e a letalidade no eixo do y
+###Criar um gr?fico de barras com o genero no eixo do x e a letalidade no eixo do y
 ggplot(letalidade, aes(x = genero, y = letalidade*100)) +
   geom_col(fill = "salmon1") +
   scale_y_continuous(expand = c(0, 0)) +
@@ -712,19 +721,19 @@ letalidade_tempo_total <- cbind(data$data, as.data.frame((data$obitos / data$con
 letalidade_tempo_mulheres <- cbind(data$data, as.data.frame((data$obitos_f / data$confirmados_f)*100))
 letalidade_tempo_homens <- cbind(data$data, as.data.frame((data$obitos_m / data$confirmados_m)*100))
 
-###Juntar as 3 tabelas numa são mudando os nomes de cada coluna
+###Juntar as 3 tabelas numa s?o mudando os nomes de cada coluna
 letalidade_tempo_total_mulheres <- merge(letalidade_tempo_total, letalidade_tempo_mulheres, by ="data$data")
 letalidade_tempo <- merge(letalidade_tempo_total_mulheres, letalidade_tempo_homens, by="data$data")
 names(letalidade_tempo) <- c("Data", "Total", "Mulheres", "Homens")
 
-###Fazer o melt para poder faze um gráfico de linhas
+###Fazer o melt para poder faze um gr?fico de linhas
 letalidade_tempo_melt <- melt(letalidade_tempo, id.vars = "Data")
 names(letalidade_tempo_melt) <- c("Data", "Genero", "Letalidade")
 
-###Fazer gráfico de linhas com a data no eixo do x, a letalidade no eixo do y e o género em cada linha
+###Fazer gr?fico de linhas com a data no eixo do x, a letalidade no eixo do y e o g?nero em cada linha
 letalidade_tempo_grafico <- ggplot(letalidade_tempo_melt, aes(x = Data, y = Letalidade, color = Genero)) +
   geom_line() +
-  xlab("Mês") +
+  xlab("M?s") +
   ylab("Letalidade (%)")+
   labs(title = "Letalidade ao Longo do Tempo") +
   theme(plot.title = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 20, color = "black", hjust = 0.5)) +
@@ -736,37 +745,37 @@ ggplotly(letalidade_tempo_grafico, add_tracey = "Letalidade")
 
 
 
-##LETALIDADE POR GRUPO ETÁRIO E GÉNERO
-###Tabela com número de casos confirmados por faixa etária por género
+##LETALIDADE POR GRUPO ET?RIO E G?NERO
+###Tabela com n?mero de casos confirmados por faixa et?ria por g?nero
 casos_genero <- merge(casos_femininos_idade_invertido, casos_masculinos_idade_invertido, by = "Idade")
 casos_genero_total <-  merge(casos_genero, casos_total_idade_invertido, by = "Idade")
 
-###Tabela com número de óbitos por faixa etária por género
+###Tabela com n?mero de ?bitos por faixa et?ria por g?nero
 mortes_genero <- merge(mortes_femininos_idade_invertido, mortes_masculinos_idade_invertido, by = "Idade")
 mortes_genero_total <-  merge(mortes_genero, mortes_total_idade_invertido, by = "Idade")
 
-###Criar tabela com uma coluna com as faixas etárioas e outra com a letalidade e dar nomes às colunas
+###Criar tabela com uma coluna com as faixas et?rioas e outra com a letalidade e dar nomes ?s colunas
 letalidade_genero <- cbind(casos_femininos_idade_invertido[,1], (mortes_genero_total[,2:4]/casos_genero_total[,2:4]))
 names(letalidade_genero) <- c("Idade", "Feminino", "Masculino", "Total")
 
-###Fazer melt para poder fazer gráfico
+###Fazer melt para poder fazer gr?fico
 letalidade_genero_melt <- melt(letalidade_genero, id.vars = "Idade")
 
-###Fazer gráfico com idade no eixo do x, letalidade no eixo do y e faixa etária em cada linha
+###Fazer gr?fico com idade no eixo do x, letalidade no eixo do y e faixa et?ria em cada linha
 letalidade_genero_grafico <- ggplot(letalidade_genero_melt, aes(x = Idade, y = value*100, color = variable, 
                                                                 tooltip = round(value*100, digits = 2), data_id = value)) +
   geom_point_interactive() +
   guides(color = FALSE) +
   facet_grid(letalidade_genero_melt$variable) +
-  xlab("Faixa etária (anos)") +
+  xlab("Faixa et?ria (anos)") +
   ylab("Letalidade (%)") +
-  labs(title = "Letalidade por Faixa etária por género") +
+  labs(title = "Letalidade por Faixa et?ria por g?nero") +
   theme(plot.title = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), 
                                   size = 20, color = "black", hjust = 0.5)) +
   theme(axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 20), size = 15)) +
   theme(axis.title.x = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 15))
 
-###Animar o gráfico 
+###Animar o gr?fico 
 girafe(code = print(letalidade_genero_grafico),
        options = list(
          opts_zoom(max = 5),
@@ -775,29 +784,29 @@ girafe(code = print(letalidade_genero_grafico),
 
 
 
-##LETALIDADE POR GRUPO ETÁRIO AO LONGO DO TEMPO
-###Tabela com o número de mortes total diários por faixa etária
+##LETALIDADE POR GRUPO ET?RIO AO LONGO DO TEMPO
+###Tabela com o n?mero de mortes total di?rios por faixa et?ria
 total_mortes_novos <- femininos_mortes + masculinos_mortes
 
-###Tabela com o número de casos totais diários por faixa etária
+###Tabela com o n?mero de casos totais di?rios por faixa et?ria
 total_casos_novos <- femininos + masculinos
 
-###Tabela com uma coluna com a data e outras com cada faixa etária onde tem o valor da letalidade total para cada dia e 
-###dar nomes às colunas
+###Tabela com uma coluna com a data e outras com cada faixa et?ria onde tem o valor da letalidade total para cada dia e 
+###dar nomes ?s colunas
 letalidade_tempo_idade <- cbind(data$data, total_mortes_novos/total_casos_novos)
 names(letalidade_tempo_idade) <- c("Data", "0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80+")
 
-###Fazer melt para fazer o gráfico
+###Fazer melt para fazer o gr?fico
 letalidade_tempo_idade_melt <- melt(letalidade_tempo_idade, id.vars = "Data")
 
-###Fazer o gráfico
+###Fazer o gr?fico
 ggplot(letalidade_tempo_idade_melt, aes(x = Data, y = value*100, color = variable)) +
   geom_line() +
   facet_grid(letalidade_tempo_idade_melt$variable) +
   guides(color = FALSE) +
-  xlab("Mês") +
+  xlab("M?s") +
   ylab("Letalidade (%)") +
-  labs(title = "Letalidade por Faixa etária ao Longo do Tempo") +
+  labs(title = "Letalidade por Faixa et?ria ao Longo do Tempo") +
   theme(plot.title = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), 
                                   size = 20, color = "black", hjust = 0.5)) +
   theme(axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 20), size = 15)) +
@@ -806,21 +815,21 @@ ggplot(letalidade_tempo_idade_melt, aes(x = Data, y = value*100, color = variabl
 
 
 
-##LETALIDADE POR REGIÃO
-###Fazer uma tabela com uma coluna com a Região e outra com a letalidade para cada Região e dar nomes adequados
+##LETALIDADE POR REGI?O
+###Fazer uma tabela com uma coluna com a Regi?o e outra com a letalidade para cada Regi?o e dar nomes adequados
 letalidade_regioes <- data.frame(t(as.data.frame(lapply(data[, obitos_arsnorte:obitos_madeira], last)) 
                                    / (as.data.frame(lapply(data[, confirmados_arsnorte:confirmados_madeira], last))))) %>% 
   rownames_to_column(var = "Regiao")
 names(letalidade_regioes)[2] <- "Letalidade"
-letalidade_regioes[, 1] <- c("Norte", "Centro", "Lisboa e Vale \ndo Tejo", "Alentejo", "Algarve", "Açores", "Madeira")
+letalidade_regioes[, 1] <- c("Norte", "Centro", "Lisboa e Vale \ndo Tejo", "Alentejo", "Algarve", "A?ores", "Madeira")
 
-###Fazer o gráfico com a Região no eixo do x e a letalidade no eixo do y
+###Fazer o gr?fico com a Regi?o no eixo do x e a letalidade no eixo do y
 ggplot(letalidade_regioes, aes(x = Regiao, y = Letalidade*100)) +
   geom_col(fill = "gray") +
   scale_y_continuous(expand = c(0, 0)) +
   coord_cartesian( ylim = c(0, max(letalidade_regioes$Letalidade*106))) +
   theme_classic() +
-  labs(title = "Letalidade Por Região") +
+  labs(title = "Letalidade Por Regi?o") +
   theme(plot.title = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), 
                                   size = 20, color = "Black", hjust = 0.5)) +
   theme(axis.title.x = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), size = 15)) +
@@ -878,23 +887,23 @@ leaflet(mapa_pt) %>%
 
 
 
-##LETALIDADE POR REGIÃO AO LONGO DO TEMPO
-###Criar tabela com uma coluna para data e outras colunas uma para cada região tendo lá os valores da letalidade diária
-###e dar nomes às colunas
+##LETALIDADE POR REGI?O AO LONGO DO TEMPO
+###Criar tabela com uma coluna para data e outras colunas uma para cada regi?o tendo l? os valores da letalidade di?ria
+###e dar nomes ?s colunas
 letalidade_regioes_tempo <- cbind(data$data, as.data.frame(data[,49:55]/data[,4:10]))
 names(letalidade_regioes_tempo) <- c("Data", "Norte", "Centro", "Lisboa e Vale do Tejo", "Alentejo", 
-                                     "Alrgarve", "Açores", "Madeira")
+                                     "Alrgarve", "A?ores", "Madeira")
 
-###Fazer melt para poder fazer o gráfico
+###Fazer melt para poder fazer o gr?fico
 letalidade_regioes_tempo_melt <- melt(letalidade_regioes_tempo, id.vars = "Data")
 
-###Fazer o gráfico de linhas com data no eixo do x, letalidade no eixo do y e regiao em cada linha
+###Fazer o gr?fico de linhas com data no eixo do x, letalidade no eixo do y e regiao em cada linha
 ggplot(letalidade_regioes_tempo_melt, aes(x = Data, y = value*100, color = variable)) +
   geom_line() +
   guides(color = FALSE) +
-  xlab("Mês") +
+  xlab("M?s") +
   ylab("Letalidade (%)") +
-  labs(title = "Letalidade por Regiãoes ao Longo do Tempo") +
+  labs(title = "Letalidade por Regi?oes ao Longo do Tempo") +
   theme(plot.title = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), 
                                   size = 20, color = "black", hjust = 0.5)) +
   theme(axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 20), size = 15)) +
@@ -906,14 +915,14 @@ ggplot(letalidade_regioes_tempo_melt, aes(x = Data, y = value*100, color = varia
 
 #RECUPERADOS 
 
-##Criar tabela com coluna para data e outra coluna para a percentagem de recuperados em cada dia e dar nomes às colunas
+##Criar tabela com coluna para data e outra coluna para a percentagem de recuperados em cada dia e dar nomes ?s colunas
 recuperados <- cbind(data$data, as.data.frame(data$recuperados / data$confirmados))
 names(recuperados) <- c("Data", "Recuperados")
 
-##Fazer gráfico de linhas com data no eixo do x e percentagem recuperados no eixo y
+##Fazer gr?fico de linhas com data no eixo do x e percentagem recuperados no eixo y
 ggplot(recuperados, aes(x = Data, y = Recuperados*100)) +
   geom_line(color = "salmon1", size = 1) +
-  labs(title = "Percentagem de Recuperados dentro dos Infetados", y = "Recuperados (%)", x = "Mês") +
+  labs(title = "Percentagem de Recuperados dentro dos Infetados", y = "Recuperados (%)", x = "M?s") +
   theme(plot.title = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), 
                                   size = 20, color = "black", hjust = 0.5)) +
   theme(axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 20), size = 15)) +
@@ -925,14 +934,14 @@ ggplot(recuperados, aes(x = Data, y = Recuperados*100)) +
 
 #INTERNADOS
 
-##NÚMERO DE INTERNADOS AO LONGO DO TEMPO
-###Fazer melt das colunas data, internados e internados UCI para ter número de internados em cada dia
+##N?MERO DE INTERNADOS AO LONGO DO TEMPO
+###Fazer melt das colunas data, internados e internados UCI para ter n?mero de internados em cada dia
 internados <- melt(data[,c(1, 15, 16)], id.vars = "data")
 
-###Fazer gráfico de linhas com data no eixo do x, número de internados no eixo do y e tipo de internamento nas linhas
+###Fazer gr?fico de linhas com data no eixo do x, n?mero de internados no eixo do y e tipo de internamento nas linhas
 ggplot(internados, aes(x = data, y =value, color = variable)) +
   geom_line(size = 1) +
-  labs(title = "número de Internados ao Longo do Tempo", y = "número Pessoas", x = "Mês", color = "") +
+  labs(title = "n?mero de Internados ao Longo do Tempo", y = "n?mero Pessoas", x = "M?s", color = "") +
   scale_color_discrete(labels = c("Internados", "Internados UCI")) +
   theme(plot.title = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), 
                                   size = 20, color = "black", hjust = 0.5)) +
@@ -944,16 +953,16 @@ ggplot(internados, aes(x = data, y =value, color = variable)) +
 
 ##PERCENTAGEM DE INTERNADOS AO LONGO DO TEMPO
 ###Fazer melt para ter tabela com coluna da data, coluna do tipo de internamento e coluna com percentagem de internados
-###que são os internados a dividir pelos confirmados e dar nomes às colunas
+###que s?o os internados a dividir pelos confirmados e dar nomes ?s colunas
 internados_confirmados <- melt((cbind(data$data, (as.data.frame(lapply(data[,c(15, 16)], 
                                                                        function(x) {x/data[, 3]}))))), id.vars = "data$data")
 names(internados_confirmados) <- c("data", "internados", "percentagem")
 
-###Fazer gráfico de linhas com data no eixo do x, percentagem internados no eixo do y e tipo de internamento em cada linha
+###Fazer gr?fico de linhas com data no eixo do x, percentagem internados no eixo do y e tipo de internamento em cada linha
 ggplot(internados_confirmados, aes(x = data, y =percentagem*100, color = internados)) +
   geom_line(size = 1) +
   labs(title = "Percentagem Internados dentro dos Infetados ao Longo do Tempo", y = "Percentagem (%)",
-       x = "Mês", color = "") +
+       x = "M?s", color = "") +
   scale_color_discrete(labels = c("Internados", "Internados UCI")) +
   theme(plot.title = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), 
                                   size = 20, color = "black", hjust = 0.5)) +
