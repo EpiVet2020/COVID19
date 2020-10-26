@@ -13,6 +13,7 @@ library(geojsonio)
 library(gganimate)
 library(plotly)
 library(RColorBrewer)
+library(zoo)
 
 #Importar dados do covid
 data <- fread("https://raw.githubusercontent.com/dssg-pt/covid19pt-data/master/data.csv")
@@ -32,7 +33,6 @@ data$data <- as.Date(data$data,"%d-%m-%Y")
 #Mapa de Portugal
 mapa_pt <- geojson_read("https://raw.githubusercontent.com/dssg-pt/covid19pt-data/master/extra/mapas/portugal.geojson",
                         what = "sp")
-
 
 
 
@@ -936,13 +936,13 @@ ggplot(recuperados, aes(x = Data, y = Recuperados*100)) +
 
 ##N?MERO DE INTERNADOS AO LONGO DO TEMPO
 ###Fazer melt das colunas data, internados e internados UCI para ter n?mero de internados em cada dia
-internados <- melt(data[,c(1, 15, 16)], id.vars = "data")
+internados <- melt(data[,c(1, 15, 88, 16)], id.vars = "data")
 
 ###Fazer gr?fico de linhas com data no eixo do x, n?mero de internados no eixo do y e tipo de internamento nas linhas
 ggplot(internados, aes(x = data, y =value, color = variable)) +
   geom_line(size = 1) +
   labs(title = "n?mero de Internados ao Longo do Tempo", y = "n?mero Pessoas", x = "M?s", color = "") +
-  scale_color_discrete(labels = c("Internados", "Internados UCI")) +
+  scale_color_discrete(labels = c("Internados", "Internados Enfermaria", "Internados UCI")) +
   theme(plot.title = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), 
                                   size = 20, color = "black", hjust = 0.5)) +
   theme(axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 20), size = 15)) +
@@ -954,7 +954,7 @@ ggplot(internados, aes(x = data, y =value, color = variable)) +
 ##PERCENTAGEM DE INTERNADOS AO LONGO DO TEMPO
 ###Fazer melt para ter tabela com coluna da data, coluna do tipo de internamento e coluna com percentagem de internados
 ###que s?o os internados a dividir pelos confirmados e dar nomes ?s colunas
-internados_confirmados <- melt((cbind(data$data, (as.data.frame(lapply(data[,c(15, 16)], 
+internados_confirmados <- melt((cbind(data$data, (as.data.frame(lapply(data[,c(15, 88, 16)], 
                                                                        function(x) {x/data[, 3]}))))), id.vars = "data$data")
 names(internados_confirmados) <- c("data", "internados", "percentagem")
 
@@ -963,7 +963,7 @@ ggplot(internados_confirmados, aes(x = data, y =percentagem*100, color = interna
   geom_line(size = 1) +
   labs(title = "Percentagem Internados dentro dos Infetados ao Longo do Tempo", y = "Percentagem (%)",
        x = "M?s", color = "") +
-  scale_color_discrete(labels = c("Internados", "Internados UCI")) +
+  scale_color_discrete(labels = c("Internados","Internados Enfermaria", "Internados UCI")) +
   theme(plot.title = element_text(margin = margin(t = 20, r = 0, b = 20, l = 0), 
                                   size = 20, color = "black", hjust = 0.5)) +
   theme(axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 20), size = 15)) +
